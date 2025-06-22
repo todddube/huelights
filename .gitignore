@@ -1,0 +1,4 @@
+logs/hue_app.log
+__pycache__/
+*.py[cod]
+*$py.class
