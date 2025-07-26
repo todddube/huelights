@@ -1,22 +1,19 @@
 import streamlit as st
-from huesdk import Hue, Discover
+from hue_v2 import Huep
+import asyncio
+import aiohttp
 import time
 import logging
 import base64
 import json
-import urllib3
-import asyncio
-import threading
-from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Dict, Any, Tuple, List, Union
 from pathlib import Path
 from datetime import datetime, timedelta
 import socket
-import requests
 
-# Suppress InsecureRequestWarning
-# TODO: Implement proper certificate verification
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# Configure SSL warnings
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # Create logs directory if it doesn't exist
 log_dir = Path('logs')
@@ -87,7 +84,7 @@ class HueCredentials:
         try:
             # Quick connection test
             hue = Hue(bridge_ip=bridge_ip, username=bridge_username)
-            hue.get_lights()  # Test API call
+            asyncio.run(hue.get_lights())  # Test API call
             return True
         except Exception:
             return False
@@ -96,56 +93,42 @@ class HueBridgeDiscovery:
     """Enhanced bridge discovery with multiple methods."""
     
     @staticmethod
-    def discover_bridges() -> List[Dict[str, str]]:
+    async def discover_bridges() -> List[Dict[str, str]]:
         """Discover Hue bridges using multiple methods."""
         bridges = []
         
-        # Method 1: Use huesdk's discovery
+        # Method 1: Official Hue discovery API
         try:
-            discover = Discover()
-            found_bridges = discover.find_hue_bridge()
-            if found_bridges:
-                for bridge in found_bridges:
-                    bridges.append({
-                        'method': 'internet',
-                        'ip': bridge.get('internalipaddress', ''),
-                        'id': bridge.get('id', ''),
-                        'port': str(bridge.get('port', 443))
-                    })
+            async with aiohttp.ClientSession() as session:
+                async with session.get('https://discovery.meethue.com/') as response:
+                    if response.status == 200:
+                        found_bridges = await response.json()
+                        for bridge in found_bridges:
+                            bridges.append({
+                                'method': 'internet',
+                                'ip': bridge.get('internalipaddress', ''),
+                                'id': bridge.get('id', ''),
+                                'port': '443'
+                            })
         except Exception as e:
             logger.warning(f"Internet discovery failed: {e}")
         
-        # Method 2: mDNS discovery
-        try:
-            discover = Discover()
-            mdns_bridges = discover.find_hue_bridge_mdns(timeout=3)
-            if mdns_bridges:
-                for bridge in mdns_bridges:
-                    bridges.append({
-                        'method': 'mdns',
-                        'ip': bridge.get('ip', ''),
-                        'id': bridge.get('id', ''),
-                        'port': str(bridge.get('port', 443))
-                    })
-        except Exception as e:
-            logger.warning(f"mDNS discovery failed: {e}")
-        
-        # Method 3: Network scan (last resort)
+        # Method 2: Local network scan
         if not bridges:
-            bridges.extend(HueBridgeDiscovery._network_scan())
+            bridges.extend(await HueBridgeDiscovery._network_scan())
         
         # Remove duplicates
         unique_bridges = []
         seen_ips = set()
         for bridge in bridges:
-            if bridge['ip'] not in seen_ips:
+            if bridge['ip'] and bridge['ip'] not in seen_ips:
                 unique_bridges.append(bridge)
                 seen_ips.add(bridge['ip'])
         
         return unique_bridges
     
     @staticmethod
-    def _network_scan() -> List[Dict[str, str]]:
+    async def _network_scan() -> List[Dict[str, str]]:
         """Scan local network for Hue bridges."""
         bridges = []
         try:
@@ -154,33 +137,32 @@ class HueBridgeDiscovery:
             local_ip = socket.gethostbyname(hostname)
             network_base = '.'.join(local_ip.split('.')[:-1]) + '.'
             
-            def check_ip(ip):
+            async def check_ip(session: aiohttp.ClientSession, ip: str):
                 try:
-                    response = requests.get(f"http://{ip}/api/config", timeout=1)
-                    if response.status_code == 200:
-                        data = response.json()
-                        if 'bridgeid' in data:
-                            return {
-                                'method': 'scan',
-                                'ip': ip,
-                                'id': data.get('bridgeid', ''),
-                                'port': '80'
-                            }
+                    async with session.get(f"https://{ip}/api/config", timeout=aiohttp.ClientTimeout(total=2), ssl=False) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            if 'bridgeid' in data:
+                                return {
+                                    'method': 'scan',
+                                    'ip': ip,
+                                    'id': data.get('bridgeid', ''),
+                                    'port': '443'
+                                }
                 except:
                     pass
                 return None
             
-            # Scan common IPs in parallel
-            with ThreadPoolExecutor(max_workers=20) as executor:
-                futures = []
-                for i in range(1, 255):
-                    ip = f"{network_base}{i}"
-                    futures.append(executor.submit(check_ip, ip))
+            # Scan common IPs concurrently
+            async with aiohttp.ClientSession() as session:
+                tasks = []
+                # Common router/bridge IPs
+                common_ips = [f"{network_base}{i}" for i in [2, 3, 4, 5, 10, 100, 101, 102]]
+                for ip in common_ips:
+                    tasks.append(check_ip(session, ip))
                 
-                for future in futures:
-                    result = future.result()
-                    if result:
-                        bridges.append(result)
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                bridges = [result for result in results if result and not isinstance(result, Exception)]
             
         except Exception as e:
             logger.warning(f"Network scan failed: {e}")
@@ -199,7 +181,7 @@ class HueController:
     @staticmethod
     @st.cache_resource
     def _init_connection(ip: str, username: str) -> Optional[Hue]:
-        """Initialize Hue bridge connection."""
+        """Initialize Hue bridge connection using API v2."""
         try:
             return Hue(bridge_ip=ip, username=username)
         except Exception as e:
@@ -217,38 +199,39 @@ class HueController:
         self._cache[key] = value
         self._cache_expiry[key] = datetime.now() + timedelta(seconds=self._cache_duration)
 
-    def get_lights(self) -> List:
+    async def get_lights(self) -> List:
         """Get lights with caching."""
         cache_key = "lights"
         if self._is_cache_valid(cache_key):
             return self._cache[cache_key]
         
-        lights = self.hue.get_lights()
+        lights = await self.hue.get_lights()
         self._set_cache(cache_key, lights)
         return lights
     
-    def get_groups(self) -> List:
+    async def get_groups(self) -> List:
         """Get groups with caching."""
         cache_key = "groups"
         if self._is_cache_valid(cache_key):
             return self._cache[cache_key]
         
-        groups = self.hue.get_groups()
+        groups = await self.hue.get_groups()
         self._set_cache(cache_key, groups)
         return groups
 
-    def get_bridge_info(self) -> Dict[str, Any]:
+    async def get_bridge_info(self) -> Dict[str, Any]:
         """Get bridge information."""
         cache_key = "bridge_info"
         if self._is_cache_valid(cache_key):
             return self._cache[cache_key]
         
         try:
-            response = requests.get(f"http://{self.bridge_ip}/api/{self.username}/config", timeout=3)
-            if response.status_code == 200:
-                info = response.json()
-                self._set_cache(cache_key, info)
-                return info
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"https://{self.bridge_ip}/api/{self.username}/config", ssl=False, timeout=aiohttp.ClientTimeout(total=3)) as response:
+                    if response.status == 200:
+                        info = await response.json()
+                        self._set_cache(cache_key, info)
+                        return info
         except Exception as e:
             logger.error(f"Error getting bridge info: {e}")
         
@@ -291,53 +274,53 @@ class HueController:
         except AttributeError:
             return {}
 
-    def control_light(self, light, new_state: bool, transition: int = 4) -> bool:
+    async def control_light(self, light, new_state: bool, transition: int = 4) -> bool:
         """Control individual light state with transition support."""
         try:
             if new_state:
-                light.on(transition=transition)
+                await light.turn_on(transition_time=transition)
             else:
-                light.off(transition=transition)
+                await light.turn_off(transition_time=transition)
             
             # Invalidate cache
             if "lights" in self._cache:
                 del self._cache["lights"]
             
-            logger.info(f"Set light {light.name} to state: {new_state}")
+            logger.info(f"Set light {getattr(light, 'name', light.id)} to state: {new_state}")
             return True
         except Exception as e:
-            logger.error(f"Error controlling light {light.name}: {str(e)}")
+            logger.error(f"Error controlling light {getattr(light, 'name', light.id)}: {str(e)}")
             return False
     
-    def set_light_brightness(self, light, brightness_pct: int, transition: int = 4) -> bool:
+    async def set_light_brightness(self, light, brightness_pct: int, transition: int = 4) -> bool:
         """Set light brightness with transition support."""
         try:
-            # Convert percentage to Hue's 1-254 range
-            bri = max(1, min(254, int((brightness_pct / 100) * 254)))
-            light.set_brightness(bri, transition=transition)
+            # Convert percentage to 0-100 range for API v2
+            brightness = max(1, min(100, brightness_pct))
+            await light.set_brightness(brightness, transition_time=transition)
             
             # Invalidate cache
             if "lights" in self._cache:
                 del self._cache["lights"]
             
-            logger.info(f"Set light {light.name} brightness to: {brightness_pct}%")
+            logger.info(f"Set light {getattr(light, 'name', light.id)} brightness to: {brightness_pct}%")
             return True
         except Exception as e:
-            logger.error(f"Error setting brightness for light {light.name}: {str(e)}")
+            logger.error(f"Error setting brightness for light {getattr(light, 'name', light.id)}: {str(e)}")
             return False
 
-    def set_light_color(self, light, color: Union[str, int, Tuple[float, float]], transition: int = 4) -> bool:
+    async def set_light_color(self, light, color: Union[str, int, Tuple[float, float]], transition: int = 4) -> bool:
         """Set light color with multiple input formats."""
         try:
             if isinstance(color, str) and color.startswith('#'):
-                # Hex color
-                light.set_color(hexa=color, transition=transition)
+                # Hex color - convert to RGB and then to XY
+                await light.set_color_hex(color, transition_time=transition)
             elif isinstance(color, int):
                 # Hue value
-                light.set_color(hue=color, transition=transition)
+                await light.set_hue(color, transition_time=transition)
             elif isinstance(color, (list, tuple)) and len(color) == 2:
                 # XY coordinates
-                light.set_state({'xy': color}, transition=transition)
+                await light.set_color_xy(color[0], color[1], transition_time=transition)
             else:
                 raise ValueError(f"Unsupported color format: {color}")
             
@@ -345,10 +328,10 @@ class HueController:
             if "lights" in self._cache:
                 del self._cache["lights"]
             
-            logger.info(f"Set light {light.name} color to: {color}")
+            logger.info(f"Set light {getattr(light, 'name', light.id)} color to: {color}")
             return True
         except Exception as e:
-            logger.error(f"Error setting color for light {light.name}: {str(e)}")
+            logger.error(f"Error setting color for light {getattr(light, 'name', light.id)}: {str(e)}")
             return False
 
     @staticmethod
@@ -359,40 +342,40 @@ class HueController:
         except AttributeError:
             return False
 
-    def control_group(self, group, new_state: bool, transition: int = 4) -> bool:
+    async def control_group(self, group, new_state: bool, transition: int = 4) -> bool:
         """Control group state with transition support."""
         try:
             if new_state:
-                group.on(transition=transition)
+                await group.turn_on(transition_time=transition)
             else:
-                group.off(transition=transition)
+                await group.turn_off(transition_time=transition)
             
             # Invalidate caches
             for key in ["groups", "lights"]:
                 if key in self._cache:
                     del self._cache[key]
             
-            logger.info(f"Set group {group.name} to state: {new_state}")
+            logger.info(f"Set group {getattr(group, 'name', group.id)} to state: {new_state}")
             return True
         except Exception as e:
-            logger.error(f"Error controlling group {group.name}: {str(e)}")
+            logger.error(f"Error controlling group {getattr(group, 'name', group.id)}: {str(e)}")
             return False
 
-    def set_group_brightness(self, group, brightness_pct: int, transition: int = 4) -> bool:
+    async def set_group_brightness(self, group, brightness_pct: int, transition: int = 4) -> bool:
         """Set group brightness with transition support."""
         try:
-            bri = max(1, min(254, int((brightness_pct / 100) * 254)))
-            group.set_brightness(bri, transition=transition)
+            brightness = max(1, min(100, brightness_pct))
+            await group.set_brightness(brightness, transition_time=transition)
             
             # Invalidate caches
             for key in ["groups", "lights"]:
                 if key in self._cache:
                     del self._cache[key]
             
-            logger.info(f"Set group {group.name} brightness to: {brightness_pct}%")
+            logger.info(f"Set group {getattr(group, 'name', group.id)} brightness to: {brightness_pct}%")
             return True
         except Exception as e:
-            logger.error(f"Error setting group brightness {group.name}: {str(e)}")
+            logger.error(f"Error setting group brightness {getattr(group, 'name', group.id)}: {str(e)}")
             return False
 
     def clear_cache(self) -> None:
@@ -476,7 +459,7 @@ class HueApp:
             
             if st.button("🔍 Discover Bridges"):
                 with st.spinner("Discovering bridges..."):
-                    st.session_state.discovered_bridges = self.discovery.discover_bridges()
+                    st.session_state.discovered_bridges = asyncio.run(self.discovery.discover_bridges())
                 st.rerun()
             
             if st.button("🔄 Clear Cache"):
@@ -490,10 +473,14 @@ class HueApp:
                     st.success("Credentials cleared!")
                     st.rerun()
 
-    def render_status_bar(self):
+    async def render_status_bar(self):
         """Render enhanced status bar with bridge and update information."""
         if self.controller:
-            bridge_info = self.controller.get_bridge_info()
+            try:
+                bridge_info = await self.controller.get_bridge_info()
+            except Exception as e:
+                logger.warning(f"Failed to get bridge info: {e}")
+                bridge_info = {}
             
             col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
             
@@ -531,7 +518,7 @@ class HueApp:
         with col2:
             if st.button("🔄 Refresh"):
                 with st.spinner("Discovering bridges..."):
-                    st.session_state.discovered_bridges = self.discovery.discover_bridges()
+                    st.session_state.discovered_bridges = asyncio.run(self.discovery.discover_bridges())
                 st.rerun()
         
         # Show discovered bridges
@@ -592,7 +579,7 @@ class HueApp:
         # Try to connect for 30 seconds
         for i in range(30):
             try:
-                username = Hue.connect(bridge_ip=bridge_ip)
+                username = asyncio.run(Hue.create_user(bridge_ip=bridge_ip))
                 if username:
                     self.credentials.save(bridge_ip, username)
                     st.success("✅ Bridge connected successfully!")
@@ -819,13 +806,18 @@ class HueApp:
                 st.rerun()
             
             # Render status bar
-            self.render_status_bar()
+            try:
+                asyncio.run(self.render_status_bar())
+            except Exception as e:
+                logger.warning(f"Status bar render failed: {e}")
             
             # Get devices with error handling
             try:
-                lights = self.controller.get_lights()
-                groups = self.controller.get_groups()
+                lights = asyncio.run(self.controller.get_lights())
+                groups = asyncio.run(self.controller.get_groups())
+                logger.info(f"Successfully loaded {len(lights)} lights and {len(groups)} groups")
             except Exception as e:
+                logger.error(f"Error fetching devices: {str(e)}")
                 st.error(f"Error fetching devices: {str(e)}")
                 if st.button("Clear Cache and Retry"):
                     self.controller.clear_cache()
