@@ -1,0 +1,28 @@
+[project]
+name = "huelights"
+version = "0.1.0"
+description = "Philips Hue Control Panel with Streamlit"
+authors = [{name = "Todd", email = "todd@example.com"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "streamlit>=1.28.0",
+    "aiohue>=4.7.0",
+    "requests>=2.31.0",
+    "urllib3>=1.26.0",
+    "aiohttp>=3.8.0",
+]
+
+[project.scripts]
+huelights = "hue_app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+include = ["hue_app.py"]
+
+[tool.uv]
+dev-dependencies = []

@@ -1,5 +1,4 @@
 import streamlit as st
-from huesdk import Hue, Discover
 import time
 import logging
 import base64
@@ -7,12 +6,22 @@ import json
 import urllib3
 import asyncio
 import threading
+import random
+import math
+import colorsys
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Dict, Any, Tuple, List, Union
 from pathlib import Path
 from datetime import datetime, timedelta
 import socket
 import requests
+import aiohttp
+from aiohue import HueBridgeV2
+from aiohue.v2 import HueBridgeV2 as HueBridgeV2Client
+from aiohue.v2.models.light import Light
+from aiohue.v2.models.room import Room
+from aiohue.v2.models.zone import Zone
+from aiohue.discovery import discover_bridge
 
 # Suppress InsecureRequestWarning
 # TODO: Implement proper certificate verification
@@ -85,10 +94,14 @@ class HueCredentials:
             return False
             
         try:
-            # Quick connection test
-            hue = Hue(bridge_ip=bridge_ip, username=bridge_username)
-            hue.get_lights()  # Test API call
-            return True
+            # Quick connection test using aiohue
+            async def test_connection():
+                async with aiohttp.ClientSession() as session:
+                    bridge = HueBridgeV2Client(bridge_ip, bridge_username, session)
+                    await bridge.initialize()
+                    return True
+            
+            return asyncio.run(test_connection())
         except Exception:
             return False
 
@@ -97,40 +110,29 @@ class HueBridgeDiscovery:
     
     @staticmethod
     def discover_bridges() -> List[Dict[str, str]]:
-        """Discover Hue bridges using multiple methods."""
+        """Discover Hue bridges using aiohue discovery."""
         bridges = []
         
-        # Method 1: Use huesdk's discovery
+        # Method 1: Use aiohue's discovery
         try:
-            discover = Discover()
-            found_bridges = discover.find_hue_bridge()
+            async def discover_async():
+                async with aiohttp.ClientSession() as session:
+                    bridges_found = await discover_bridge(session)
+                    return bridges_found
+            
+            found_bridges = asyncio.run(discover_async())
             if found_bridges:
                 for bridge in found_bridges:
                     bridges.append({
-                        'method': 'internet',
-                        'ip': bridge.get('internalipaddress', ''),
-                        'id': bridge.get('id', ''),
-                        'port': str(bridge.get('port', 443))
+                        'method': 'aiohue_discovery',
+                        'ip': bridge.host,
+                        'id': bridge.id,
+                        'port': str(bridge.port or 443)
                     })
         except Exception as e:
-            logger.warning(f"Internet discovery failed: {e}")
+            logger.warning(f"aiohue discovery failed: {e}")
         
-        # Method 2: mDNS discovery
-        try:
-            discover = Discover()
-            mdns_bridges = discover.find_hue_bridge_mdns(timeout=3)
-            if mdns_bridges:
-                for bridge in mdns_bridges:
-                    bridges.append({
-                        'method': 'mdns',
-                        'ip': bridge.get('ip', ''),
-                        'id': bridge.get('id', ''),
-                        'port': str(bridge.get('port', 443))
-                    })
-        except Exception as e:
-            logger.warning(f"mDNS discovery failed: {e}")
-        
-        # Method 3: Network scan (last resort)
+        # Method 2: Network scan (fallback)
         if not bridges:
             bridges.extend(HueBridgeDiscovery._network_scan())
         
@@ -191,19 +193,27 @@ class HueController:
     def __init__(self, ip: str, username: str):
         self.bridge_ip = ip
         self.username = username
-        self.hue = self._init_connection(ip, username)
+        self.bridge = None
+        self.session = None
         self._cache = {}
         self._cache_expiry = {}
         self._cache_duration = 2  # seconds
+        self._initialize_bridge()
         
-    @staticmethod
-    @st.cache_resource
-    def _init_connection(ip: str, username: str) -> Optional[Hue]:
-        """Initialize Hue bridge connection."""
+    def _initialize_bridge(self):
+        """Initialize aiohue bridge connection."""
+        async def init_async():
+            self.session = aiohttp.ClientSession()
+            self.bridge = HueBridgeV2Client(self.bridge_ip, self.username, self.session)
+            await self.bridge.initialize()
+            return self.bridge
+        
         try:
-            return Hue(bridge_ip=ip, username=username)
+            asyncio.run(init_async())
         except Exception as e:
-            logger.error(f"Error initializing Hue: {str(e)}")
+            logger.error(f"Error initializing aiohue bridge: {str(e)}")
+            if self.session:
+                asyncio.run(self.session.close())
             raise
 
     def _is_cache_valid(self, key: str) -> bool:
@@ -217,23 +227,31 @@ class HueController:
         self._cache[key] = value
         self._cache_expiry[key] = datetime.now() + timedelta(seconds=self._cache_duration)
 
-    def get_lights(self) -> List:
+    def get_lights(self) -> List[Light]:
         """Get lights with caching."""
         cache_key = "lights"
         if self._is_cache_valid(cache_key):
             return self._cache[cache_key]
         
-        lights = self.hue.get_lights()
+        async def get_lights_async():
+            return list(self.bridge.lights.values())
+        
+        lights = asyncio.run(get_lights_async())
         self._set_cache(cache_key, lights)
         return lights
     
-    def get_groups(self) -> List:
-        """Get groups with caching."""
+    def get_groups(self) -> List[Union[Room, Zone]]:
+        """Get rooms and zones (groups) with caching."""
         cache_key = "groups"
         if self._is_cache_valid(cache_key):
             return self._cache[cache_key]
         
-        groups = self.hue.get_groups()
+        async def get_groups_async():
+            rooms = list(self.bridge.rooms.values())
+            zones = list(self.bridge.zones.values())
+            return rooms + zones
+        
+        groups = asyncio.run(get_groups_async())
         self._set_cache(cache_key, groups)
         return groups
 
@@ -244,161 +262,425 @@ class HueController:
             return self._cache[cache_key]
         
         try:
-            response = requests.get(f"http://{self.bridge_ip}/api/{self.username}/config", timeout=3)
-            if response.status_code == 200:
-                info = response.json()
-                self._set_cache(cache_key, info)
-                return info
+            async def get_info_async():
+                if hasattr(self.bridge, 'bridge') and self.bridge.bridge:
+                    bridge_info = self.bridge.bridge
+                    return {
+                        'name': getattr(bridge_info, 'name', 'Unknown'),
+                        'id': getattr(bridge_info, 'id', 'Unknown'),
+                        'bridge_id': getattr(bridge_info, 'bridge_id', 'Unknown'),
+                        'api_version': '2.0',  # aiohue uses API v2
+                        'software_version': getattr(bridge_info, 'software_version', 'Unknown')
+                    }
+                return {}
+            
+            info = asyncio.run(get_info_async())
+            self._set_cache(cache_key, info)
+            return info
         except Exception as e:
             logger.error(f"Error getting bridge info: {e}")
         
         return {}
     
     @staticmethod
-    def get_light_state(light) -> bool:
+    def get_light_state(light: Light) -> bool:
         """Get current light state safely."""
         try:
-            return bool(light.state.get('on', False))
+            return bool(light.on.on if hasattr(light, 'on') and light.on else False)
         except AttributeError:
             return False
 
     @staticmethod
-    def get_light_brightness(light) -> int:
+    def get_light_brightness(light: Light) -> int:
         """Get current light brightness safely (0-100%)."""
         try:
-            # Hue brightness is 1-254, convert to percentage
-            bri = light.state.get('bri', 0)
-            if bri == 0:
-                return 0
-            # Convert to percentage (0-100%)
-            return max(1, min(100, int((bri / 254) * 100)))
+            if hasattr(light, 'dimming') and light.dimming:
+                # aiohue brightness is already in percentage (0-100%)
+                return int(light.dimming.brightness or 0)
+            return 0
         except AttributeError:
-            logger.warning(f"Light {getattr(light, 'name', 'unknown')} has no brightness attribute")
+            logger.warning(f"Light {getattr(light, 'metadata', {}).get('name', 'unknown')} has no brightness attribute")
             return 0
 
     @staticmethod
-    def get_light_color_info(light) -> Dict[str, Any]:
+    def get_light_color_info(light: Light) -> Dict[str, Any]:
         """Get light color information."""
         try:
-            color_info = {
-                'hue': light.state.get('hue', 0),
-                'sat': light.state.get('sat', 0),
-                'xy': light.state.get('xy', [0, 0]),
-                'ct': light.state.get('ct', 0),
-                'colormode': light.state.get('colormode', 'hs')
-            }
+            color_info = {}
+            if hasattr(light, 'color') and light.color:
+                if hasattr(light.color, 'xy'):
+                    color_info['xy'] = [light.color.xy.x, light.color.xy.y]
+            if hasattr(light, 'color_temperature') and light.color_temperature:
+                color_info['ct'] = light.color_temperature.mirek
             return color_info
         except AttributeError:
             return {}
 
-    def control_light(self, light, new_state: bool, transition: int = 4) -> bool:
+    def control_light(self, light: Light, new_state: bool, transition: int = 4) -> bool:
         """Control individual light state with transition support."""
         try:
-            if new_state:
-                light.on(transition=transition)
-            else:
-                light.off(transition=transition)
+            async def control_async():
+                update_data = {
+                    "on": {"on": new_state},
+                    "dynamics": {"duration": transition * 100}  # Convert to milliseconds
+                }
+                await self.bridge.lights.set_state(light.id, **update_data)
+                return True
+            
+            result = asyncio.run(control_async())
             
             # Invalidate cache
             if "lights" in self._cache:
                 del self._cache["lights"]
             
-            logger.info(f"Set light {light.name} to state: {new_state}")
-            return True
+            light_name = getattr(light.metadata, 'name', 'Unknown') if hasattr(light, 'metadata') else 'Unknown'
+            logger.info(f"Set light {light_name} to state: {new_state}")
+            return result
         except Exception as e:
-            logger.error(f"Error controlling light {light.name}: {str(e)}")
+            light_name = getattr(light.metadata, 'name', 'Unknown') if hasattr(light, 'metadata') else 'Unknown'
+            logger.error(f"Error controlling light {light_name}: {str(e)}")
             return False
     
-    def set_light_brightness(self, light, brightness_pct: int, transition: int = 4) -> bool:
+    def set_light_brightness(self, light: Light, brightness_pct: int, transition: int = 4) -> bool:
         """Set light brightness with transition support."""
         try:
-            # Convert percentage to Hue's 1-254 range
-            bri = max(1, min(254, int((brightness_pct / 100) * 254)))
-            light.set_brightness(bri, transition=transition)
+            async def set_brightness_async():
+                update_data = {
+                    "dimming": {"brightness": max(1, min(100, brightness_pct))},
+                    "dynamics": {"duration": transition * 100}  # Convert to milliseconds
+                }
+                await self.bridge.lights.set_state(light.id, **update_data)
+                return True
+            
+            result = asyncio.run(set_brightness_async())
             
             # Invalidate cache
             if "lights" in self._cache:
                 del self._cache["lights"]
             
-            logger.info(f"Set light {light.name} brightness to: {brightness_pct}%")
-            return True
+            light_name = getattr(light.metadata, 'name', 'Unknown') if hasattr(light, 'metadata') else 'Unknown'
+            logger.info(f"Set light {light_name} brightness to: {brightness_pct}%")
+            return result
         except Exception as e:
-            logger.error(f"Error setting brightness for light {light.name}: {str(e)}")
+            light_name = getattr(light.metadata, 'name', 'Unknown') if hasattr(light, 'metadata') else 'Unknown'
+            logger.error(f"Error setting brightness for light {light_name}: {str(e)}")
             return False
 
-    def set_light_color(self, light, color: Union[str, int, Tuple[float, float]], transition: int = 4) -> bool:
-        """Set light color with multiple input formats."""
+    def set_light_color(self, light: Light, color: Union[str, int, Tuple[float, float]], transition: int = 4) -> bool:
+        """Set light color with multiple input formats and improved color conversion."""
         try:
-            if isinstance(color, str) and color.startswith('#'):
-                # Hex color
-                light.set_color(hexa=color, transition=transition)
-            elif isinstance(color, int):
-                # Hue value
-                light.set_color(hue=color, transition=transition)
-            elif isinstance(color, (list, tuple)) and len(color) == 2:
-                # XY coordinates
-                light.set_state({'xy': color}, transition=transition)
-            else:
-                raise ValueError(f"Unsupported color format: {color}")
+            async def set_color_async():
+                update_data = {"dynamics": {"duration": transition * 100}}
+                
+                if isinstance(color, str) and color.startswith('#'):
+                    # Enhanced hex to XY conversion using proper color science
+                    hex_color = color.lstrip('#')
+                    r, g, b = tuple(int(hex_color[i:i+2], 16) / 255.0 for i in (0, 2, 4))
+                    x, y = self.rgb_to_xy(r, g, b)
+                    update_data["color"] = {"xy": {"x": x, "y": y}}
+                elif isinstance(color, (list, tuple)) and len(color) == 2:
+                    # XY coordinates
+                    update_data["color"] = {"xy": {"x": color[0], "y": color[1]}}
+                elif isinstance(color, (list, tuple)) and len(color) == 3:
+                    # RGB values (0-1 range)
+                    r, g, b = color
+                    x, y = self.rgb_to_xy(r, g, b)
+                    update_data["color"] = {"xy": {"x": x, "y": y}}
+                else:
+                    raise ValueError(f"Unsupported color format: {color}")
+                
+                await self.bridge.lights.set_state(light.id, **update_data)
+                return True
+            
+            result = asyncio.run(set_color_async())
             
             # Invalidate cache
             if "lights" in self._cache:
                 del self._cache["lights"]
             
-            logger.info(f"Set light {light.name} color to: {color}")
-            return True
+            light_name = getattr(light.metadata, 'name', 'Unknown') if hasattr(light, 'metadata') else 'Unknown'
+            logger.info(f"Set light {light_name} color to: {color}")
+            return result
         except Exception as e:
-            logger.error(f"Error setting color for light {light.name}: {str(e)}")
+            light_name = getattr(light.metadata, 'name', 'Unknown') if hasattr(light, 'metadata') else 'Unknown'
+            logger.error(f"Error setting color for light {light_name}: {str(e)}")
             return False
+    
+    @staticmethod
+    def rgb_to_xy(red: float, green: float, blue: float) -> Tuple[float, float]:
+        """Convert RGB to XY color space for Philips Hue lights."""
+        # Apply gamma correction
+        red = pow((red + 0.055) / (1.0 + 0.055), 2.4) if red > 0.04045 else red / 12.92
+        green = pow((green + 0.055) / (1.0 + 0.055), 2.4) if green > 0.04045 else green / 12.92
+        blue = pow((blue + 0.055) / (1.0 + 0.055), 2.4) if blue > 0.04045 else blue / 12.92
+        
+        # Convert to XYZ
+        X = red * 0.664511 + green * 0.154324 + blue * 0.162028
+        Y = red * 0.283881 + green * 0.668433 + blue * 0.047685
+        Z = red * 0.000088 + green * 0.072310 + blue * 0.986039
+        
+        # Convert to xy
+        if X + Y + Z == 0:
+            return 0.3127, 0.3290  # Default white point
+        
+        x = X / (X + Y + Z)
+        y = Y / (X + Y + Z)
+        
+        # Clamp to valid color gamut for Hue lights
+        x = max(0.0, min(1.0, x))
+        y = max(0.0, min(1.0, y))
+        
+        return x, y
+    
+    @staticmethod
+    def generate_random_color() -> Tuple[float, float]:
+        """Generate a random color in XY color space."""
+        # Generate random HSV and convert to RGB then to XY
+        hue = random.uniform(0, 1)
+        saturation = random.uniform(0.5, 1.0)  # Avoid too pale colors
+        value = random.uniform(0.7, 1.0)  # Avoid too dim colors
+        
+        r, g, b = colorsys.hsv_to_rgb(hue, saturation, value)
+        return HueController.rgb_to_xy(r, g, b)
+    
+    @staticmethod
+    def generate_rainbow_colors(count: int) -> List[Tuple[float, float]]:
+        """Generate evenly spaced rainbow colors."""
+        colors = []
+        for i in range(count):
+            hue = i / count
+            r, g, b = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+            x, y = HueController.rgb_to_xy(r, g, b)
+            colors.append((x, y))
+        return colors
+    
+    @staticmethod
+    def generate_warm_colors() -> Tuple[float, float]:
+        """Generate warm colors (reds, oranges, yellows)."""
+        hue = random.uniform(0.0, 0.15)  # Red to yellow range
+        if random.random() > 0.5:
+            hue = random.uniform(0.85, 1.0)  # Red range wrap-around
+        
+        saturation = random.uniform(0.6, 1.0)
+        value = random.uniform(0.8, 1.0)
+        
+        r, g, b = colorsys.hsv_to_rgb(hue, saturation, value)
+        return HueController.rgb_to_xy(r, g, b)
+    
+    @staticmethod
+    def generate_cool_colors() -> Tuple[float, float]:
+        """Generate cool colors (blues, greens, purples)."""
+        hue = random.uniform(0.3, 0.8)  # Green to blue to purple range
+        saturation = random.uniform(0.6, 1.0)
+        value = random.uniform(0.8, 1.0)
+        
+        r, g, b = colorsys.hsv_to_rgb(hue, saturation, value)
+        return HueController.rgb_to_xy(r, g, b)
 
     @staticmethod
-    def get_group_state(group) -> bool:
+    def get_group_state(group: Union[Room, Zone]) -> bool:
         """Get current group state safely."""
         try:
-            return bool(group.state.get('any_on', False))
+            if hasattr(group, 'on') and group.on:
+                return bool(group.on.on)
+            return False
         except AttributeError:
             return False
 
-    def control_group(self, group, new_state: bool, transition: int = 4) -> bool:
+    def control_group(self, group: Union[Room, Zone], new_state: bool, transition: int = 4) -> bool:
         """Control group state with transition support."""
         try:
-            if new_state:
-                group.on(transition=transition)
-            else:
-                group.off(transition=transition)
+            async def control_group_async():
+                update_data = {
+                    "on": {"on": new_state},
+                    "dynamics": {"duration": transition * 100}
+                }
+                
+                if isinstance(group, Room):
+                    await self.bridge.rooms.set_state(group.id, **update_data)
+                else:  # Zone
+                    await self.bridge.zones.set_state(group.id, **update_data)
+                return True
+            
+            result = asyncio.run(control_group_async())
             
             # Invalidate caches
             for key in ["groups", "lights"]:
                 if key in self._cache:
                     del self._cache[key]
             
-            logger.info(f"Set group {group.name} to state: {new_state}")
-            return True
+            group_name = getattr(group.metadata, 'name', 'Unknown') if hasattr(group, 'metadata') else 'Unknown'
+            logger.info(f"Set group {group_name} to state: {new_state}")
+            return result
         except Exception as e:
-            logger.error(f"Error controlling group {group.name}: {str(e)}")
+            group_name = getattr(group.metadata, 'name', 'Unknown') if hasattr(group, 'metadata') else 'Unknown'
+            logger.error(f"Error controlling group {group_name}: {str(e)}")
             return False
 
-    def set_group_brightness(self, group, brightness_pct: int, transition: int = 4) -> bool:
+    def set_group_brightness(self, group: Union[Room, Zone], brightness_pct: int, transition: int = 4) -> bool:
         """Set group brightness with transition support."""
         try:
-            bri = max(1, min(254, int((brightness_pct / 100) * 254)))
-            group.set_brightness(bri, transition=transition)
+            async def set_brightness_async():
+                update_data = {
+                    "dimming": {"brightness": max(1, min(100, brightness_pct))},
+                    "dynamics": {"duration": transition * 100}
+                }
+                
+                if isinstance(group, Room):
+                    await self.bridge.rooms.set_state(group.id, **update_data)
+                else:  # Zone
+                    await self.bridge.zones.set_state(group.id, **update_data)
+                return True
+            
+            result = asyncio.run(set_brightness_async())
             
             # Invalidate caches
             for key in ["groups", "lights"]:
                 if key in self._cache:
                     del self._cache[key]
             
-            logger.info(f"Set group {group.name} brightness to: {brightness_pct}%")
-            return True
+            group_name = getattr(group.metadata, 'name', 'Unknown') if hasattr(group, 'metadata') else 'Unknown'
+            logger.info(f"Set group {group_name} brightness to: {brightness_pct}%")
+            return result
         except Exception as e:
-            logger.error(f"Error setting group brightness {group.name}: {str(e)}")
+            group_name = getattr(group.metadata, 'name', 'Unknown') if hasattr(group, 'metadata') else 'Unknown'
+            logger.error(f"Error setting group brightness {group_name}: {str(e)}")
             return False
 
     def clear_cache(self) -> None:
         """Clear all cached data."""
         self._cache.clear()
         self._cache_expiry.clear()
+    
+    def get_lights_in_room(self, room_name: str) -> List[Light]:
+        """Get all lights in a specific room."""
+        try:
+            groups = self.get_groups()
+            target_room = None
+            
+            for group in groups:
+                group_name = getattr(group.metadata, 'name', '') if hasattr(group, 'metadata') else ''
+                if room_name.lower() in group_name.lower():
+                    target_room = group
+                    break
+            
+            if not target_room or not hasattr(target_room, 'children'):
+                return []
+            
+            lights = self.get_lights()
+            room_lights = []
+            for child_id in target_room.children:
+                light = next((l for l in lights if l.id == child_id), None)
+                if light:
+                    room_lights.append(light)
+            
+            return room_lights
+        except Exception as e:
+            logger.error(f"Error getting lights in room {room_name}: {str(e)}")
+            return []
+    
+    def random_room_lighting(self, room_name: str, effect_type: str = "rainbow", 
+                           transition: int = 10, brightness: int = 80) -> bool:
+        """Apply random lighting effects to a specific room."""
+        try:
+            room_lights = self.get_lights_in_room(room_name)
+            if not room_lights:
+                logger.warning(f"No lights found in room: {room_name}")
+                return False
+            
+            async def apply_effects_async():
+                tasks = []
+                
+                for i, light in enumerate(room_lights):
+                    # Turn on light first
+                    turn_on_data = {
+                        "on": {"on": True},
+                        "dimming": {"brightness": brightness},
+                        "dynamics": {"duration": transition * 100}
+                    }
+                    tasks.append(self.bridge.lights.set_state(light.id, **turn_on_data))
+                    
+                    # Wait a bit to stagger the lighting
+                    await asyncio.sleep(0.2)
+                    
+                    # Apply color effect
+                    color_data = {"dynamics": {"duration": transition * 100}}
+                    
+                    if effect_type == "rainbow":
+                        colors = self.generate_rainbow_colors(len(room_lights))
+                        x, y = colors[i % len(colors)]
+                    elif effect_type == "random":
+                        x, y = self.generate_random_color()
+                    elif effect_type == "warm":
+                        x, y = self.generate_warm_colors()
+                    elif effect_type == "cool":
+                        x, y = self.generate_cool_colors()
+                    else:
+                        x, y = self.generate_random_color()
+                    
+                    color_data["color"] = {"xy": {"x": x, "y": y}}
+                    tasks.append(self.bridge.lights.set_state(light.id, **color_data))
+                
+                await asyncio.gather(*tasks, return_exceptions=True)
+                return True
+            
+            result = asyncio.run(apply_effects_async())
+            
+            # Invalidate cache
+            for key in ["lights", "groups"]:
+                if key in self._cache:
+                    del self._cache[key]
+            
+            logger.info(f"Applied {effect_type} lighting to {room_name} with {len(room_lights)} lights")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error applying random lighting to room {room_name}: {str(e)}")
+            return False
+    
+    def cycle_colors_room(self, room_name: str, duration_per_color: int = 5, 
+                         total_cycles: int = 10) -> bool:
+        """Cycle through colors in a room over time."""
+        try:
+            room_lights = self.get_lights_in_room(room_name)
+            if not room_lights:
+                return False
+            
+            async def cycle_async():
+                for cycle in range(total_cycles):
+                    # Generate new colors for this cycle
+                    colors = self.generate_rainbow_colors(len(room_lights))
+                    tasks = []
+                    
+                    for i, light in enumerate(room_lights):
+                        x, y = colors[(i + cycle) % len(colors)]  # Rotate colors each cycle
+                        
+                        update_data = {
+                            "color": {"xy": {"x": x, "y": y}},
+                            "dynamics": {"duration": duration_per_color * 100}
+                        }
+                        tasks.append(self.bridge.lights.set_state(light.id, **update_data))
+                    
+                    await asyncio.gather(*tasks, return_exceptions=True)
+                    await asyncio.sleep(duration_per_color)
+                
+                return True
+            
+            result = asyncio.run(cycle_async())
+            logger.info(f"Completed color cycling in {room_name}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error cycling colors in room {room_name}: {str(e)}")
+            return False
+    
+    def __del__(self):
+        """Cleanup when controller is destroyed."""
+        if self.session and not self.session.closed:
+            try:
+                asyncio.run(self.session.close())
+            except Exception:
+                pass
 
 class HueApp:
     def __init__(self):
@@ -592,7 +874,13 @@ class HueApp:
         # Try to connect for 30 seconds
         for i in range(30):
             try:
-                username = Hue.connect(bridge_ip=bridge_ip)
+                async def connect_async():
+                    async with aiohttp.ClientSession() as session:
+                        bridge = HueBridgeV2Client(bridge_ip, None, session)
+                        username = await bridge.create_user("hue_streamlit_app")
+                        return username
+                
+                username = asyncio.run(connect_async())
                 if username:
                     self.credentials.save(bridge_ip, username)
                     st.success("✅ Bridge connected successfully!")
@@ -611,7 +899,7 @@ class HueApp:
 
     def render_light_controls(self, light, group_id: Optional[str] = None):
         """Render enhanced light controls with color support."""
-        key_prefix = f"light_{light.id_}"
+        key_prefix = f"light_{light.id}"
         if group_id:
             key_prefix += f"_in_group_{group_id}"
         
@@ -619,7 +907,8 @@ class HueApp:
         lcol1, lcol2, lcol3 = st.columns([2.5, 0.5, 1])
         
         with lcol1:
-            st.write(f"  💡 **{light.name}**")
+            light_name = getattr(light.metadata, 'name', 'Unknown Light') if hasattr(light, 'metadata') else 'Unknown Light'
+            st.write(f"  💡 **{light_name}**")
         
         with lcol2:
             state_icon = "🟢" if self.controller.get_light_state(light) else "⚫"
@@ -739,9 +1028,10 @@ class HueApp:
                     emoji = value
                     break
             
-            # Show light count
-            light_count = len(getattr(group, 'lights', []))
-            st.write(f"{emoji} **{group.name}** ({light_count} lights)")
+            # Show light count and group name
+            group_name = getattr(group.metadata, 'name', 'Unknown Group') if hasattr(group, 'metadata') else 'Unknown Group'
+            light_count = len(getattr(group, 'children', [])) if hasattr(group, 'children') else 0
+            st.write(f"{emoji} **{group_name}** ({light_count} lights)")
         
         with col2:
             status_icon = "🟢" if self.controller.get_group_state(group) else "⚫"
@@ -751,7 +1041,7 @@ class HueApp:
             current_state = self.controller.get_group_state(group)
             button_text = "Turn Off" if current_state else "Turn On"
             
-            if st.button(button_text, key=f"group_{group.id_}"):
+            if st.button(button_text, key=f"group_{group.id}"):
                 success = self.controller.control_group(
                     group, 
                     not current_state, 
@@ -772,10 +1062,10 @@ class HueApp:
                     min_value=1, 
                     max_value=100, 
                     value=50,  # Default value since groups don't return brightness
-                    key=f"group_{group.id_}_brightness"
+                    key=f"group_{group.id}_brightness"
                 )
                 
-                if st.button("Apply Group Brightness", key=f"group_{group.id_}_apply_brightness"):
+                if st.button("Apply Group Brightness", key=f"group_{group.id}_apply_brightness"):
                     success = self.controller.set_group_brightness(
                         group, 
                         group_brightness, 
@@ -785,6 +1075,52 @@ class HueApp:
                         st.rerun()
                     else:
                         st.error("Failed to set group brightness")
+        
+        # Room-specific random lighting effects
+        if st.session_state.show_advanced:
+            st.markdown("**🌈 Room Lighting Effects**")
+            
+            rcol1, rcol2, rcol3, rcol4 = st.columns(4)
+            
+            with rcol1:
+                if st.button("🎨 Random", key=f"random_{group.id}"):
+                    group_name = getattr(group.metadata, 'name', '') if hasattr(group, 'metadata') else ''
+                    if group_name:
+                        success = self.controller.random_room_lighting(group_name, "random", 10, 80)
+                        if success:
+                            st.rerun()
+                        else:
+                            st.error("Failed to apply random lighting")
+            
+            with rcol2:
+                if st.button("🌈 Rainbow", key=f"rainbow_{group.id}"):
+                    group_name = getattr(group.metadata, 'name', '') if hasattr(group, 'metadata') else ''
+                    if group_name:
+                        success = self.controller.random_room_lighting(group_name, "rainbow", 10, 80)
+                        if success:
+                            st.rerun()
+                        else:
+                            st.error("Failed to apply rainbow lighting")
+            
+            with rcol3:
+                if st.button("🔥 Warm", key=f"warm_{group.id}"):
+                    group_name = getattr(group.metadata, 'name', '') if hasattr(group, 'metadata') else ''
+                    if group_name:
+                        success = self.controller.random_room_lighting(group_name, "warm", 10, 80)
+                        if success:
+                            st.rerun()
+                        else:
+                            st.error("Failed to apply warm lighting")
+            
+            with rcol4:
+                if st.button("❄️ Cool", key=f"cool_{group.id}"):
+                    group_name = getattr(group.metadata, 'name', '') if hasattr(group, 'metadata') else ''
+                    if group_name:
+                        success = self.controller.random_room_lighting(group_name, "cool", 10, 80)
+                        if success:
+                            st.rerun()
+                        else:
+                            st.error("Failed to apply cool lighting")
 
     def main(self):
         st.set_page_config(
@@ -844,14 +1180,15 @@ class HueApp:
                             self.render_group_controls(group)
                             
                             # Lights in group
-                            with st.expander(f"Lights in {group.name}", expanded=False):
-                                if hasattr(group, 'lights') and group.lights:
-                                    for light_id in group.lights:
-                                        light = next((l for l in lights if str(l.id_) == str(light_id)), None)
+                            group_name = getattr(group.metadata, 'name', 'Unknown Group') if hasattr(group, 'metadata') else 'Unknown Group'
+                            with st.expander(f"Lights in {group_name}", expanded=False):
+                                if hasattr(group, 'children') and group.children:
+                                    for child_id in group.children:
+                                        light = next((l for l in lights if l.id == child_id), None)
                                         if light:
                                             with st.container():
                                                 st.markdown("---")
-                                                self.render_light_controls(light, group.id_)
+                                                self.render_light_controls(light, group.id)
                                 else:
                                     st.info("No lights in this group")
                             
@@ -893,6 +1230,54 @@ class HueApp:
                                         self.controller.set_light_brightness(light, 20, st.session_state.transition_time)
                                 st.rerun()
                         
+                        # Random lighting effects section
+                        st.subheader("🌈 Random Lighting Effects")
+                        
+                        ecol1, ecol2, ecol3, ecol4, ecol5 = st.columns(5)
+                        
+                        with ecol1:
+                            if st.button("🎨 Random Colors"):
+                                for light in lights:
+                                    if self.controller.get_light_state(light):
+                                        x, y = self.controller.generate_random_color()
+                                        self.controller.set_light_color(light, (x, y), st.session_state.transition_time)
+                                st.rerun()
+                        
+                        with ecol2:
+                            if st.button("🌈 Rainbow"):
+                                colors = self.controller.generate_rainbow_colors(len(lights))
+                                for i, light in enumerate(lights):
+                                    if self.controller.get_light_state(light):
+                                        x, y = colors[i % len(colors)]
+                                        self.controller.set_light_color(light, (x, y), st.session_state.transition_time)
+                                st.rerun()
+                        
+                        with ecol3:
+                            if st.button("🔥 Warm Colors"):
+                                for light in lights:
+                                    if self.controller.get_light_state(light):
+                                        x, y = self.controller.generate_warm_colors()
+                                        self.controller.set_light_color(light, (x, y), st.session_state.transition_time)
+                                st.rerun()
+                        
+                        with ecol4:
+                            if st.button("❄️ Cool Colors"):
+                                for light in lights:
+                                    if self.controller.get_light_state(light):
+                                        x, y = self.controller.generate_cool_colors()
+                                        self.controller.set_light_color(light, (x, y), st.session_state.transition_time)
+                                st.rerun()
+                        
+                        with ecol5:
+                            if st.button("🎪 Party Mode"):
+                                # Turn on all lights with random colors and high brightness
+                                for light in lights:
+                                    self.controller.control_light(light, True, st.session_state.transition_time)
+                                    self.controller.set_light_brightness(light, 100, st.session_state.transition_time)
+                                    x, y = self.controller.generate_random_color()
+                                    self.controller.set_light_color(light, (x, y), st.session_state.transition_time)
+                                st.rerun()
+                        
                         st.divider()
                     
                     # Individual light controls
@@ -911,10 +1296,10 @@ class HueApp:
                         st.subheader("🌉 Bridge Information")
                         st.write(f"**Name:** {bridge_info.get('name', 'Unknown')}")
                         st.write(f"**IP Address:** {self.controller.bridge_ip}")
-                        st.write(f"**API Version:** {bridge_info.get('apiversion', 'Unknown')}")
-                        st.write(f"**Software Version:** {bridge_info.get('swversion', 'Unknown')}")
-                        st.write(f"**Bridge ID:** {bridge_info.get('bridgeid', 'Unknown')}")
-                        st.write(f"**Model ID:** {bridge_info.get('modelid', 'Unknown')}")
+                        st.write(f"**API Version:** {bridge_info.get('api_version', '2.0')}")
+                        st.write(f"**Software Version:** {bridge_info.get('software_version', 'Unknown')}")
+                        st.write(f"**Bridge ID:** {bridge_info.get('bridge_id', 'Unknown')}")
+                        st.write(f"**ID:** {bridge_info.get('id', 'Unknown')}")
                     
                     with col2:
                         st.subheader("📊 Statistics")
@@ -931,7 +1316,7 @@ class HueApp:
                     st.subheader("🔧 Diagnostics")
                     if st.button("Test Connection"):
                         try:
-                            test_lights = self.controller.hue.get_lights()
+                            test_lights = self.controller.get_lights()
                             st.success(f"✅ Connection successful! Found {len(test_lights)} lights.")
                         except Exception as e:
                             st.error(f"❌ Connection failed: {str(e)}")
@@ -947,6 +1332,10 @@ class HueApp:
                     self.credentials.filepath.unlink()
                 st.rerun()
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for the application."""
     app = HueApp()
     app.main()
+
+if __name__ == "__main__":
+    main()

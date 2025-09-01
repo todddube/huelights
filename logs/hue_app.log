@@ -380,3 +380,18 @@
 2025-06-22 16:08:20,352 - __main__ - WARNING - Light Living Room Downlight 2 has no brightness attribute
 2025-06-22 16:08:20,353 - __main__ - WARNING - Light Living Room Downlight 3 has no brightness attribute
 2025-06-22 16:08:20,355 - __main__ - WARNING - Light Living Room Downlight 4 has no brightness attribute
+2025-06-28 10:51:58,432 - __main__ - INFO - Hue App started 2025-06-28 10:51:58
+2025-06-28 10:52:05,609 - __main__ - INFO - Hue App started 2025-06-28 10:52:05
+2025-06-28 10:52:05,619 - __main__ - WARNING - aiohue discovery failed: Cannot connect to host <aiohttp.client.clientsession object at 0x000001631c5874d0>:80 ssl:default [getaddrinfo failed]
+2025-09-01 07:19:07,994 - hue_app - INFO - Hue App started 2025-09-01 07:19:07
+2025-09-01 07:19:37,178 - hue_app - INFO - Hue App started 2025-09-01 07:19:37
+2025-09-01 07:19:37,201 - __main__ - ERROR - Credentials are invalid. Please reconfigure bridge.
+2025-09-01 07:19:54,767 - hue_app - INFO - Hue App started 2025-09-01 07:19:54
+2025-09-01 07:19:59,228 - hue_app - INFO - Hue App started 2025-09-01 07:19:59
+2025-09-01 07:20:45,223 - hue_app - INFO - Hue App started 2025-09-01 07:20:45
+2025-09-01 07:20:45,243 - __main__ - ERROR - Credentials are invalid. Please reconfigure bridge.
+2025-09-01 07:21:18,502 - __main__ - INFO - Hue App started 2025-09-01 07:21:18
+2025-09-01 07:21:26,384 - __main__ - INFO - Hue App started 2025-09-01 07:21:26
+2025-09-01 07:21:35,721 - __main__ - INFO - Hue App started 2025-09-01 07:21:35
+2025-09-01 07:21:40,115 - __main__ - INFO - Hue App started 2025-09-01 07:21:40
+2025-09-01 07:21:40,144 - __main__ - WARNING - aiohue discovery failed: Cannot connect to host <aiohttp.client.clientsession object at 0x000001d966fbee90>:80 ssl:default [getaddrinfo failed]
