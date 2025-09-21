@@ -395,3 +395,52 @@
 2025-09-01 07:21:35,721 - __main__ - INFO - Hue App started 2025-09-01 07:21:35
 2025-09-01 07:21:40,115 - __main__ - INFO - Hue App started 2025-09-01 07:21:40
 2025-09-01 07:21:40,144 - __main__ - WARNING - aiohue discovery failed: Cannot connect to host <aiohttp.client.clientsession object at 0x000001d966fbee90>:80 ssl:default [getaddrinfo failed]
+2025-09-21 17:47:21 | INFO | __main__:main:1269 | Modern Hue App started at 2025-09-21T17:47:21.115580
+2025-09-21 17:47:28 | INFO | __main__:main:1269 | Modern Hue App started at 2025-09-21T17:47:28.569416
+2025-09-21 17:47:28 | DEBUG | __main__:is_valid_async:208 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:47:28 | INFO | __main__:main:1278 | Application shutdown
+2025-09-21 17:47:29 | DEBUG | __main__:is_valid_async:208 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:47:29 | INFO | __main__:main:1278 | Application shutdown
+2025-09-21 17:47:59 | INFO | __main__:main:1269 | Modern Hue App started at 2025-09-21T17:47:59.990157
+2025-09-21 17:48:00 | WARNING | __main__:discover_bridges_async:250 | Official discovery failed: Cannot connect to host <httpx.asyncclient object at 0x10a5560d0>:80 ssl:default [nodename nor servname provided, or not known]
+2025-09-21 17:48:00 | INFO | __main__:main:1269 | Modern Hue App started at 2025-09-21T17:48:00.207793
+2025-09-21 17:48:00 | WARNING | __main__:discover_bridges_async:250 | Official discovery failed: Cannot connect to host <httpx.asyncclient object at 0x10a54bdd0>:80 ssl:default [nodename nor servname provided, or not known]
+2025-09-21 17:48:00 | INFO | __main__:discover_bridges_async:267 | Discovered 1 unique bridges
+2025-09-21 17:48:00 | INFO | __main__:main:1278 | Application shutdown
+2025-09-21 17:48:00 | INFO | __main__:discover_bridges_async:267 | Discovered 1 unique bridges
+2025-09-21 17:48:00 | INFO | __main__:main:1278 | Application shutdown
+2025-09-21 17:48:00 | INFO | __main__:main:1269 | Modern Hue App started at 2025-09-21T17:48:00.416841
+2025-09-21 17:48:00 | DEBUG | __main__:is_valid_async:208 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:48:00 | INFO | __main__:main:1278 | Application shutdown
+2025-09-21 17:48:02 | INFO | __main__:main:1269 | Modern Hue App started at 2025-09-21T17:48:02.824134
+2025-09-21 17:48:02 | DEBUG | __main__:is_valid_async:208 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:48:02 | INFO | __main__:main:1278 | Application shutdown
+2025-09-21 17:48:06 | INFO | __main__:main:1269 | Modern Hue App started at 2025-09-21T17:48:06.584486
+2025-09-21 17:48:06 | DEBUG | __main__:is_valid_async:208 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:48:06 | INFO | __main__:main:1278 | Application shutdown
+2025-09-21 17:50:03 | INFO | hue_app_modern:load:179 | Found legacy credentials, migrating to modern format
+2025-09-21 17:50:03 | INFO | hue_app_modern:_migrate_legacy_credentials:211 | Migrating credentials for bridge: 192.168.7.213
+2025-09-21 17:50:03 | INFO | hue_app_modern:save:162 | Credentials saved to creds/hue_credentials.json
+2025-09-21 17:50:03 | INFO | hue_app_modern:_migrate_legacy_credentials:216 | ✅ Successfully migrated legacy credentials to modern format
+2025-09-21 17:50:09 | DEBUG | hue_app_modern:is_valid_async:239 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:50:43 | DEBUG | hue_app_modern:is_valid_async:239 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:52:32 | INFO | __main__:main:1300 | Modern Hue App started at 2025-09-21T17:52:32.963609
+2025-09-21 17:52:33 | DEBUG | __main__:is_valid_async:239 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:52:33 | INFO | __main__:main:1309 | Application shutdown
+2025-09-21 17:52:36 | INFO | __main__:main:1300 | Modern Hue App started at 2025-09-21T17:52:36.905840
+2025-09-21 17:52:36 | DEBUG | __main__:is_valid_async:239 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:52:36 | INFO | __main__:main:1309 | Application shutdown
+2025-09-21 17:52:38 | INFO | __main__:main:1300 | Modern Hue App started at 2025-09-21T17:52:38.254625
+2025-09-21 17:52:38 | DEBUG | __main__:is_valid_async:239 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:52:38 | INFO | __main__:main:1309 | Application shutdown
+2025-09-21 17:52:38 | INFO | __main__:main:1300 | Modern Hue App started at 2025-09-21T17:52:38.934481
+2025-09-21 17:52:38 | DEBUG | __main__:is_valid_async:239 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:52:38 | INFO | __main__:main:1309 | Application shutdown
+2025-09-21 17:52:45 | INFO | __main__:main:1300 | Modern Hue App started at 2025-09-21T17:52:45.317283
+2025-09-21 17:52:45 | WARNING | __main__:discover_bridges_async:281 | Official discovery failed: Cannot connect to host <httpx.asyncclient object at 0x10a70b590>:80 ssl:default [nodename nor servname provided, or not known]
+2025-09-21 17:52:45 | INFO | __main__:discover_bridges_async:298 | Discovered 1 unique bridges
+2025-09-21 17:52:45 | INFO | __main__:main:1309 | Application shutdown
+2025-09-21 17:52:45 | INFO | __main__:main:1300 | Modern Hue App started at 2025-09-21T17:52:45.472514
+2025-09-21 17:52:45 | DEBUG | __main__:is_valid_async:239 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given
+2025-09-21 17:52:45 | INFO | __main__:main:1309 | Application shutdown
+2025-09-21 17:53:23 | DEBUG | hue_app_modern:is_valid_async:239 | Credential validation failed: HueBridgeV2.__init__() takes 3 positional arguments but 4 were given

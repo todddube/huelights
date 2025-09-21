@@ -10,7 +10,12 @@
       "Bash(sudo apt install:*)",
       "Bash(streamlit run:*)",
       "WebSearch",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(sh)",
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(uv:*)",
+      "Bash(source:*)",
+      "Bash(timeout:*)"
     ],
     "deny": []
   }

@@ -4,13 +4,18 @@ version = "0.1.0"
 description = "Philips Hue Control Panel with Streamlit"
 authors = [{name = "Todd", email = "todd@example.com"}]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "streamlit>=1.28.0",
-    "aiohue>=4.7.0",
-    "requests>=2.31.0",
-    "urllib3>=1.26.0",
-    "aiohttp>=3.8.0",
+    "streamlit>=1.39.0",
+    "aiohue>=4.7.2",
+    "httpx>=0.27.0",
+    "pydantic>=2.9.0",
+    "loguru>=0.7.2",
+    "python-dotenv>=1.0.1",
+    "rich>=13.8.0",
+    "typer>=0.12.0",
+    "asyncio-mqtt>=0.16.2",
+    "tenacity>=9.0.0",
 ]
 
 [project.scripts]
@@ -24,5 +29,63 @@ build-backend = "hatchling.build"
 packages = ["."]
 include = ["hue_app.py"]
 
-[tool.uv]
-dev-dependencies = []
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "black>=24.8.0",
+    "ruff>=0.6.0",
+    "mypy>=1.11.0",
+    "pre-commit>=3.8.0",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = '\.pyi?$'
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "S",   # bandit
+    "T20", # flake8-print
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "S101",  # use of assert
+    "T201",  # print statements (needed for streamlit)
+]
+
+[tool.ruff.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers --cov=. --cov-report=term-missing"
+testpaths = ["tests"]
+asyncio_mode = "auto"
