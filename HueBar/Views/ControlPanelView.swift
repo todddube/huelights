@@ -66,15 +66,15 @@ struct ControlPanelView: View {
 
             Divider()
 
-            // Size the popup to its content so short lists never scroll; only fall back to
-            // scrolling when the list is taller than the screen allows.
+            // The popover follows the content's own height, so switching between a long and
+            // a short tab grows or shrinks it. The ScrollView is always present (a single view
+            // identity keeps each list's expansion state alive) but is sized to the content, so
+            // it only actually scrolls once the content would run off the screen.
             ScrollView {
-                content
-                    .padding(14)
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
+                measuredContent
             }
             .frame(height: min(max(contentHeight, 60), maxContentHeight))
-            .animation(.easeInOut(duration: 0.15), value: contentHeight)
+            .scrollBounceBehavior(.basedOnSize)
 
             if let message = store.lastError {
                 Divider()
@@ -89,6 +89,15 @@ struct ControlPanelView: View {
     }
 
     // MARK: - Pieces
+
+    /// The selected tab's content, padded and reporting its laid-out height.
+    private var measuredContent: some View {
+        content
+            .padding(14)
+            .frame(maxWidth: .infinity)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
+            .id(selectedTab)
+    }
 
     private var header: some View {
         HStack(spacing: 10) {
@@ -160,11 +169,12 @@ struct ControlPanelView: View {
     }
 
     private var footer: some View {
-        HStack {
+        HStack(spacing: 8) {
+            AppBadge()
+            Spacer()
             Text("\(store.lightsOnCount) of \(store.lights.count) lights on")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Spacer()
             Button {
                 Task { await store.refresh() }
             } label: {

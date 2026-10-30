@@ -150,7 +150,7 @@ struct SetupView: View {
 
     private var footer: some View {
         HStack {
-            Text("HueBar").font(.caption).foregroundStyle(.tertiary)
+            AppBadge()
             Spacer()
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.borderless)

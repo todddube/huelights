@@ -13,7 +13,7 @@ Last verified: 2026-10-30
 | swift-tools-version | 6.0 (`Package.swift`, `HueKit/Package.swift`) |
 | Language mode | Swift 6, `SWIFT_STRICT_CONCURRENCY = complete` |
 | Deployment target | macOS 14.0 (SwiftPM `.macOS(.v14)`, project.yml, `LSMinimumSystemVersion`) |
-| Targets | `HueBar` (executable / app, SwiftUI `MenuBarExtra`), `HueKit` (library), `HueKitTests` |
+| Targets | `HueBar` (executable / app, AppKit `main.swift` + `NSStatusItem`/`NSPopover` hosting SwiftUI), `HueKit` (library), `HueKitTests` |
 | Xcode project | Generated from `project.yml` with xcodegen (`make xcodeproj`); regenerate after adding/removing files |
 | Signing | Ad-hoc (`CODE_SIGN_IDENTITY = -`), hardened runtime on, App Sandbox off |
 | Tests | swift-testing; `HUEBAR_LIVE=1` enables live tests against a LAN bridge |
@@ -57,3 +57,4 @@ Last verified: 2026-10-30
 ## Changes
 
 - 2026-10-30 — Created from the initial Swift 6 rewrite (HueKit + HueBar).
+- 2026-10-30 — Platform baseline: app entry moved from SwiftUI `MenuBarExtra` to AppKit `NSStatusItem` + `NSPopover`.

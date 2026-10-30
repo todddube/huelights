@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		004DDFADE87DAAE055EEC51D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42F5981F8BC2245913C6DB11 /* AppDelegate.swift */; };
 		00E1454AA6302A0D0B097643 /* ControlPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8E5CD43CB89269BA6D138AE /* ControlPanelView.swift */; };
 		151865256631970EFB0AA38D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 772A2641C9F49912A8E86E74 /* Assets.xcassets */; };
 		307D0242533E0734B9160E0D /* BridgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3454E659076EF171A4A17E /* BridgeView.swift */; };
@@ -16,24 +17,29 @@
 		4B37D7C34C804138272243B3 /* Controls.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29AFBC392FEF0ADA426A504 /* Controls.swift */; };
 		52B663A6F3E7F4D026D7E56A /* ScenesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE650D8A12F819D1A764ED88 /* ScenesView.swift */; };
 		54D6B56B3E75E7B4A2F76FEF /* BridgeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6C546249790CBC5F87E120D /* BridgeStore.swift */; };
+		7150D9D3A046BFCC60C10694 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4735559F7148C2F35212CD /* StatusItemController.swift */; };
 		72FFFA3B00F65D3D70C11A9D /* HueKit in Frameworks */ = {isa = PBXBuildFile; productRef = 11C07DAB13E968214CDD2FE8 /* HueKit */; };
 		8E77CC0780F6ACCD47AF7F1E /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB822AE4BD4A2E5608AC4E80 /* AboutView.swift */; };
+		A1C307345C09E9443CEBDE1B /* AppBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A066FB0480ABF6D39CB52B8F /* AppBadge.swift */; };
 		A8FA86F19E496BA98A23C0F6 /* PairedBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B81CCE5E4342CCEC7504DF54 /* PairedBridge.swift */; };
+		AE1B1249B4CC240BCD661A2E /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C7E4280BF7A31A3951C7A9D /* main.swift */; };
 		CFA1533CCA48FE0C11C9DD0E /* HueLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7414C0087FF17FD8BE9D9069 /* HueLogo.swift */; };
 		D31B8166E974C33C9B02322D /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F68FACC8F644EBA251C14FDF /* AppInfo.swift */; };
 		DFDBD800D3652EA2878C75AD /* GroupsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81776756AC88B00A3AC5555E /* GroupsListView.swift */; };
-		E9307B3A2B383C670B0B632A /* HueBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D560EDEFD36051E68639E5D /* HueBarApp.swift */; };
 		F577EF5E0912F573F4B70389 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B39DBDF8DDF2B49143F436 /* SetupView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		02BD1CF2E0D73F66560EDA8E /* HueBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HueBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0A4735559F7148C2F35212CD /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
+		42F5981F8BC2245913C6DB11 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		698F00161EA1956F4D9E0909 /* LaunchAtLoginToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginToggle.swift; sourceTree = "<group>"; };
 		6AEBF0E884E0AB4F0A00FAD7 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		7414C0087FF17FD8BE9D9069 /* HueLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HueLogo.swift; sourceTree = "<group>"; };
 		772A2641C9F49912A8E86E74 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		81776756AC88B00A3AC5555E /* GroupsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListView.swift; sourceTree = "<group>"; };
-		8D560EDEFD36051E68639E5D /* HueBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HueBarApp.swift; sourceTree = "<group>"; };
+		9C7E4280BF7A31A3951C7A9D /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		A066FB0480ABF6D39CB52B8F /* AppBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBadge.swift; sourceTree = "<group>"; };
 		AB822AE4BD4A2E5608AC4E80 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		B81CCE5E4342CCEC7504DF54 /* PairedBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairedBridge.swift; sourceTree = "<group>"; };
 		D6C546249790CBC5F87E120D /* BridgeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeStore.swift; sourceTree = "<group>"; };
@@ -71,6 +77,7 @@
 			isa = PBXGroup;
 			children = (
 				AB822AE4BD4A2E5608AC4E80 /* AboutView.swift */,
+				A066FB0480ABF6D39CB52B8F /* AppBadge.swift */,
 				DB3454E659076EF171A4A17E /* BridgeView.swift */,
 				E8E5CD43CB89269BA6D138AE /* ControlPanelView.swift */,
 				E29AFBC392FEF0ADA426A504 /* Controls.swift */,
@@ -97,8 +104,10 @@
 		566B5EFA3A7CD37A0898E558 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				42F5981F8BC2245913C6DB11 /* AppDelegate.swift */,
 				F68FACC8F644EBA251C14FDF /* AppInfo.swift */,
-				8D560EDEFD36051E68639E5D /* HueBarApp.swift */,
+				9C7E4280BF7A31A3951C7A9D /* main.swift */,
+				0A4735559F7148C2F35212CD /* StatusItemController.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -207,13 +216,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E77CC0780F6ACCD47AF7F1E /* AboutView.swift in Sources */,
+				A1C307345C09E9443CEBDE1B /* AppBadge.swift in Sources */,
+				004DDFADE87DAAE055EEC51D /* AppDelegate.swift in Sources */,
 				D31B8166E974C33C9B02322D /* AppInfo.swift in Sources */,
 				54D6B56B3E75E7B4A2F76FEF /* BridgeStore.swift in Sources */,
 				307D0242533E0734B9160E0D /* BridgeView.swift in Sources */,
 				00E1454AA6302A0D0B097643 /* ControlPanelView.swift in Sources */,
 				4B37D7C34C804138272243B3 /* Controls.swift in Sources */,
 				DFDBD800D3652EA2878C75AD /* GroupsListView.swift in Sources */,
-				E9307B3A2B383C670B0B632A /* HueBarApp.swift in Sources */,
 				CFA1533CCA48FE0C11C9DD0E /* HueLogo.swift in Sources */,
 				39FCC80315AE66F93AC3F83A /* LaunchAtLoginToggle.swift in Sources */,
 				3E88D9B539EA1B9D1F288482 /* LightsListView.swift in Sources */,
@@ -221,6 +231,8 @@
 				3CEEF0A24619D43FFED69C3E /* RootView.swift in Sources */,
 				52B663A6F3E7F4D026D7E56A /* ScenesView.swift in Sources */,
 				F577EF5E0912F573F4B70389 /* SetupView.swift in Sources */,
+				7150D9D3A046BFCC60C10694 /* StatusItemController.swift in Sources */,
+				AE1B1249B4CC240BCD661A2E /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
