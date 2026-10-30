@@ -1,0 +1,48 @@
+# xcodegen spec for HueBar.xcodeproj. Regenerate with `make xcodeproj` (or `xcodegen generate`).
+name: HueBar
+options:
+  bundleIdPrefix: com.todddube
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: false
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+packages:
+  HueKit:
+    path: HueKit
+targets:
+  HueBar:
+    type: application
+    platform: macOS
+    sources:
+      - path: HueBar
+        excludes:
+          - Info.plist
+    dependencies:
+      - package: HueKit
+    settings:
+      base:
+        PRODUCT_NAME: HueBar
+        PRODUCT_BUNDLE_IDENTIFIER: com.todddube.HueBar
+        INFOPLIST_FILE: HueBar/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
+        ENABLE_HARDENED_RUNTIME: YES
+        # No App Sandbox: the credentials file must be shared with `swift run` builds and
+        # Bonjour/HTTPS to the bridge would otherwise need extra entitlements.
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_USER_SCRIPT_SANDBOXING: YES
+        COMBINE_HIDPI_IMAGES: YES
+        DEAD_CODE_STRIPPING: YES
+    scheme:
+      testTargets: []
+      gatherCoverageData: false

@@ -1,0 +1,441 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00E1454AA6302A0D0B097643 /* ControlPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8E5CD43CB89269BA6D138AE /* ControlPanelView.swift */; };
+		151865256631970EFB0AA38D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 772A2641C9F49912A8E86E74 /* Assets.xcassets */; };
+		307D0242533E0734B9160E0D /* BridgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3454E659076EF171A4A17E /* BridgeView.swift */; };
+		39FCC80315AE66F93AC3F83A /* LaunchAtLoginToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 698F00161EA1956F4D9E0909 /* LaunchAtLoginToggle.swift */; };
+		3CEEF0A24619D43FFED69C3E /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AEBF0E884E0AB4F0A00FAD7 /* RootView.swift */; };
+		3E88D9B539EA1B9D1F288482 /* LightsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6CAE8115BD1063681E7112 /* LightsListView.swift */; };
+		4B37D7C34C804138272243B3 /* Controls.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29AFBC392FEF0ADA426A504 /* Controls.swift */; };
+		52B663A6F3E7F4D026D7E56A /* ScenesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE650D8A12F819D1A764ED88 /* ScenesView.swift */; };
+		54D6B56B3E75E7B4A2F76FEF /* BridgeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6C546249790CBC5F87E120D /* BridgeStore.swift */; };
+		72FFFA3B00F65D3D70C11A9D /* HueKit in Frameworks */ = {isa = PBXBuildFile; productRef = 11C07DAB13E968214CDD2FE8 /* HueKit */; };
+		8E77CC0780F6ACCD47AF7F1E /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB822AE4BD4A2E5608AC4E80 /* AboutView.swift */; };
+		A8FA86F19E496BA98A23C0F6 /* PairedBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B81CCE5E4342CCEC7504DF54 /* PairedBridge.swift */; };
+		CFA1533CCA48FE0C11C9DD0E /* HueLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7414C0087FF17FD8BE9D9069 /* HueLogo.swift */; };
+		D31B8166E974C33C9B02322D /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F68FACC8F644EBA251C14FDF /* AppInfo.swift */; };
+		DFDBD800D3652EA2878C75AD /* GroupsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81776756AC88B00A3AC5555E /* GroupsListView.swift */; };
+		E9307B3A2B383C670B0B632A /* HueBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D560EDEFD36051E68639E5D /* HueBarApp.swift */; };
+		F577EF5E0912F573F4B70389 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B39DBDF8DDF2B49143F436 /* SetupView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		02BD1CF2E0D73F66560EDA8E /* HueBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HueBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		698F00161EA1956F4D9E0909 /* LaunchAtLoginToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginToggle.swift; sourceTree = "<group>"; };
+		6AEBF0E884E0AB4F0A00FAD7 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		7414C0087FF17FD8BE9D9069 /* HueLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HueLogo.swift; sourceTree = "<group>"; };
+		772A2641C9F49912A8E86E74 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		81776756AC88B00A3AC5555E /* GroupsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListView.swift; sourceTree = "<group>"; };
+		8D560EDEFD36051E68639E5D /* HueBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HueBarApp.swift; sourceTree = "<group>"; };
+		AB822AE4BD4A2E5608AC4E80 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		B81CCE5E4342CCEC7504DF54 /* PairedBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairedBridge.swift; sourceTree = "<group>"; };
+		D6C546249790CBC5F87E120D /* BridgeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeStore.swift; sourceTree = "<group>"; };
+		DB3454E659076EF171A4A17E /* BridgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeView.swift; sourceTree = "<group>"; };
+		E29AFBC392FEF0ADA426A504 /* Controls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controls.swift; sourceTree = "<group>"; };
+		E372AB6299D6332AB3014AFE /* HueKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HueKit; path = HueKit; sourceTree = SOURCE_ROOT; };
+		E8E5CD43CB89269BA6D138AE /* ControlPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlPanelView.swift; sourceTree = "<group>"; };
+		EE650D8A12F819D1A764ED88 /* ScenesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenesView.swift; sourceTree = "<group>"; };
+		F68FACC8F644EBA251C14FDF /* AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfo.swift; sourceTree = "<group>"; };
+		F6B39DBDF8DDF2B49143F436 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
+		FF6CAE8115BD1063681E7112 /* LightsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightsListView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D623829F7E751C8458529891 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				72FFFA3B00F65D3D70C11A9D /* HueKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		07AA17BB96D0ED4767834B58 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				02BD1CF2E0D73F66560EDA8E /* HueBar.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		131968964504E43B04760EE2 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AB822AE4BD4A2E5608AC4E80 /* AboutView.swift */,
+				DB3454E659076EF171A4A17E /* BridgeView.swift */,
+				E8E5CD43CB89269BA6D138AE /* ControlPanelView.swift */,
+				E29AFBC392FEF0ADA426A504 /* Controls.swift */,
+				81776756AC88B00A3AC5555E /* GroupsListView.swift */,
+				7414C0087FF17FD8BE9D9069 /* HueLogo.swift */,
+				698F00161EA1956F4D9E0909 /* LaunchAtLoginToggle.swift */,
+				FF6CAE8115BD1063681E7112 /* LightsListView.swift */,
+				6AEBF0E884E0AB4F0A00FAD7 /* RootView.swift */,
+				EE650D8A12F819D1A764ED88 /* ScenesView.swift */,
+				F6B39DBDF8DDF2B49143F436 /* SetupView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		2CEF2BBC84CFA6C4EAD9F796 = {
+			isa = PBXGroup;
+			children = (
+				D4380B78BEC1FA34921DB72F /* HueBar */,
+				F7AEC1AD53D7F703678D6542 /* Packages */,
+				07AA17BB96D0ED4767834B58 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		566B5EFA3A7CD37A0898E558 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F68FACC8F644EBA251C14FDF /* AppInfo.swift */,
+				8D560EDEFD36051E68639E5D /* HueBarApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C2496E866F05187DE9B84245 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				D6C546249790CBC5F87E120D /* BridgeStore.swift */,
+				B81CCE5E4342CCEC7504DF54 /* PairedBridge.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		D4380B78BEC1FA34921DB72F /* HueBar */ = {
+			isa = PBXGroup;
+			children = (
+				772A2641C9F49912A8E86E74 /* Assets.xcassets */,
+				566B5EFA3A7CD37A0898E558 /* App */,
+				C2496E866F05187DE9B84245 /* Store */,
+				131968964504E43B04760EE2 /* Views */,
+			);
+			path = HueBar;
+			sourceTree = "<group>";
+		};
+		F7AEC1AD53D7F703678D6542 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				E372AB6299D6332AB3014AFE /* HueKit */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E90ABC7F78C9CC2D1E0F6402 /* HueBar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 26A9242BC3498D25FD201E63 /* Build configuration list for PBXNativeTarget "HueBar" */;
+			buildPhases = (
+				68217AC65F25B1336B6D0654 /* Sources */,
+				92303B6D38A914CA2D5B6A05 /* Resources */,
+				D623829F7E751C8458529891 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HueBar;
+			packageProductDependencies = (
+				11C07DAB13E968214CDD2FE8 /* HueKit */,
+			);
+			productName = HueBar;
+			productReference = 02BD1CF2E0D73F66560EDA8E /* HueBar.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8E90A4F571DD846C0B816302 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					E90ABC7F78C9CC2D1E0F6402 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 62BC0E8DCF5D97A650DA2280 /* Build configuration list for PBXProject "HueBar" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 2CEF2BBC84CFA6C4EAD9F796;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B18ACEBAE2DB6F0E9C3196D8 /* XCLocalSwiftPackageReference "HueKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 07AA17BB96D0ED4767834B58 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E90ABC7F78C9CC2D1E0F6402 /* HueBar */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		92303B6D38A914CA2D5B6A05 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				151865256631970EFB0AA38D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		68217AC65F25B1336B6D0654 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8E77CC0780F6ACCD47AF7F1E /* AboutView.swift in Sources */,
+				D31B8166E974C33C9B02322D /* AppInfo.swift in Sources */,
+				54D6B56B3E75E7B4A2F76FEF /* BridgeStore.swift in Sources */,
+				307D0242533E0734B9160E0D /* BridgeView.swift in Sources */,
+				00E1454AA6302A0D0B097643 /* ControlPanelView.swift in Sources */,
+				4B37D7C34C804138272243B3 /* Controls.swift in Sources */,
+				DFDBD800D3652EA2878C75AD /* GroupsListView.swift in Sources */,
+				E9307B3A2B383C670B0B632A /* HueBarApp.swift in Sources */,
+				CFA1533CCA48FE0C11C9DD0E /* HueLogo.swift in Sources */,
+				39FCC80315AE66F93AC3F83A /* LaunchAtLoginToggle.swift in Sources */,
+				3E88D9B539EA1B9D1F288482 /* LightsListView.swift in Sources */,
+				A8FA86F19E496BA98A23C0F6 /* PairedBridge.swift in Sources */,
+				3CEEF0A24619D43FFED69C3E /* RootView.swift in Sources */,
+				52B663A6F3E7F4D026D7E56A /* ScenesView.swift in Sources */,
+				F577EF5E0912F573F4B70389 /* SetupView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1572126299558D6E98FE5FDD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HueBar/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.todddube.HueBar;
+				PRODUCT_NAME = HueBar;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		6F88DFB301B72F25623D6664 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HueBar/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.todddube.HueBar;
+				PRODUCT_NAME = HueBar;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		7A26CE0D026DB50CDF9621C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		9F452CC224E9BFB2C9F18A24 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		26A9242BC3498D25FD201E63 /* Build configuration list for PBXNativeTarget "HueBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1572126299558D6E98FE5FDD /* Debug */,
+				6F88DFB301B72F25623D6664 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		62BC0E8DCF5D97A650DA2280 /* Build configuration list for PBXProject "HueBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A26CE0D026DB50CDF9621C2 /* Debug */,
+				9F452CC224E9BFB2C9F18A24 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		B18ACEBAE2DB6F0E9C3196D8 /* XCLocalSwiftPackageReference "HueKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = HueKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		11C07DAB13E968214CDD2FE8 /* HueKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HueKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 8E90A4F571DD846C0B816302 /* Project object */;
+}

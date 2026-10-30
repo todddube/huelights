@@ -1,107 +1,48 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
-## Project Overview
+## What this is
 
-This is a Philips Hue Control Panel built with Streamlit, providing a modern web interface for controlling Hue smart lights. The application features auto-discovery, real-time controls, room/zone management, and advanced color controls.
+HueBar: a native macOS menu bar app (SwiftUI `MenuBarExtra`, `.window` style) that discovers,
+pairs with and controls Philips Hue bridges. Swift 6 language mode with strict concurrency.
+The previous Python/Streamlit implementation lives untouched in `backup/` (git-ignored).
 
-## Architecture
+## Layout
 
-The codebase follows a single-file architecture with modular classes:
+- `HueKit/` — UI-free Swift package. `HueClient` (actor) speaks CLIP v2 over HTTPS plus the
+  few v1 endpoints that have no v2 equivalent (firmware, light search, bridge rename).
+  `HueDiscovery` does Bonjour → IPv4 resolution, cloud fallback and `/api/0/config` probing.
+  `BridgeTrustDelegate` pins the bridge certificate (TOFU, common name must equal the bridge id).
+  `HueColor` converts sRGB ↔ CIE xy with gamut clamping. Tests in `HueKit/Tests`.
+- `HueBar/` — the app. `Store/BridgeStore` is the single `@MainActor @Observable` model;
+  views never call `HueClient` directly. `Store/PairedBridge` persists credentials to
+  `~/Library/Application Support/HueBar/bridges.json` (deliberately not the keychain, see its
+  doc comment). `Views/` are small SwiftUI views; `Views/Controls.swift` holds shared pieces.
+- `project.yml` → `HueBar.xcodeproj` via xcodegen. `Package.swift` builds the same sources
+  with SwiftPM; `scripts/build-app.sh` wraps the binary into `build/HueBar.app`.
+- `scripts/make-icons.swift` renders the icon set, `.icns` and logo; `HueBar/Views/HueLogo.swift`
+  draws the same mark in SwiftUI.
 
-- **HueCredentials** (`hue_app.py:45-103`): Manages secure credential storage with base64 encoding
-- **HueBridgeDiscovery** (`hue_app.py:105-187`): Auto-discovery using aiohue and network scanning fallback
-- **HueController** (`hue_app.py:189-485`): Core API interface with caching and async operations using aiohue v4.7+
-- **HueApp** (`hue_app.py:487-1042`): Main Streamlit application with UI components
+## Commands
 
-## Key Commands
-
-### Development
 ```bash
-# Install dependencies
-uv sync
-
-# Run application
-uv run streamlit run hue_app.py
-# OR use provided scripts:
-start.bat          # Windows
-./start.sh         # Unix/macOS
-
-# Add new dependencies
-uv add <package-name>
-
-# Update dependencies
-uv lock --upgrade
+make build / make app / make run / make install
+make test                 # unit tests
+HUEBAR_LIVE=1 make test   # opt-in tests against the real bridge on the LAN
+make xcodeproj            # after adding/removing files outside Xcode
+make icons                # re-render artwork
+xcodebuild -project HueBar.xcodeproj -scheme HueBar build
 ```
 
-### Testing
-No formal test suite is implemented. Testing is done through:
-- Bridge connection diagnostics in the UI
-- Manual testing of light controls
-- Connection validation in HueCredentials.is_valid()
+## Conventions
 
-## Important Implementation Details
-
-### Async Operations
-The codebase uses asyncio extensively through aiohue library:
-- All bridge operations are wrapped in `asyncio.run()` calls
-- Session management handled automatically in HueController
-- Proper cleanup in `__del__` method (`hue_app.py:479-485`)
-
-### Caching Strategy
-HueController implements time-based caching (2-second TTL):
-- Light states cached to reduce API calls
-- Cache invalidation on state changes
-- Manual cache clearing available in UI
-
-### Bridge Discovery
-Two-tier discovery approach:
-1. aiohue automatic discovery (primary)
-2. Network scanning fallback (192.168.x.x range)
-
-### Credential Security
-- Base64 encoding for stored credentials (not encryption)
-- Credentials stored in `creds/hue_credentials.json`
-- 30-second bridge button timeout for initial setup
-
-## Dependencies
-
-Core dependencies (managed via uv):
-- streamlit>=1.28.0 (UI framework)
-- aiohue>=4.7.0 (Hue API v2 client)
-- aiohttp>=3.8.0 (async HTTP client)
-- requests>=2.31.0 (fallback HTTP client)
-
-## Directory Structure
-
-```
-├── hue_app.py              # Main application (single file)
-├── pyproject.toml          # uv project configuration
-├── start.bat/start.sh      # Launch scripts
-├── creds/                  # Bridge credentials (gitignored)
-├── logs/                   # Application logs
-└── venv/                   # uv virtual environment
-```
-
-## Common Development Patterns
-
-### Adding New Light Controls
-1. Extend HueController with new control method
-2. Add UI component in render_light_controls()
-3. Use transition time from session state
-4. Invalidate relevant cache entries
-
-### Bridge Communication
-Always use async patterns:
-```python
-async def operation_async():
-    await self.bridge.lights.set_state(light.id, **update_data)
-result = asyncio.run(operation_async())
-```
-
-### State Management
-Streamlit session state is used for:
-- Polling intervals and auto-refresh settings
-- UI state (advanced controls, discovered bridges)
-- Transition timing preferences
+- Follow `~/.claude/swift-standards.md` (file headers with target `HueKit · HueBar` or
+  `HueBar · HueBar`, `///` docs, `os.Logger`, no `try!`/force unwraps on input).
+- Writes to the bridge go through `BridgeStore.send(key:delay:_:)`, which coalesces slider
+  drags per resource and suppresses incoming events for that resource while a write is pending.
+- Every bridge write passes `transitionMilliseconds` from the store.
+- New CLIP v2 fields: add them as optionals on the model and on `HueEventResource` so the
+  event stream can apply partial updates.
+- Keep the app unsandboxed: sandboxing would move the credentials file into a container and
+  break sharing with `swift run`.
