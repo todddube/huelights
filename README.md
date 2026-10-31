@@ -21,6 +21,10 @@ updates, searching for new bulbs and removing devices.
   and install, search for new lights, paired device list with removal, forget bridge.
 - **Live updates** from the bridge's event stream, so changes made in the Hue app show up instantly.
 - Menu bar icon fills in when any light is on; one-click all-on/all-off; launch at login.
+- Reconnects on its own after sleep or when the bridge changes IP address.
+- Accessibility: VoiceOver labels and values on every control, keyboard-reachable actions,
+  Reduce Motion respected. Destructive actions (forget bridge, remove device, firmware
+  install) ask for confirmation.
 
 ## Building
 
@@ -36,18 +40,21 @@ outside Xcode, run `make xcodeproj`.
 make app        # release build → build/HueBar.app
 make run        # build and launch it
 make install    # copy to /Applications
-make test       # HueKit unit tests
+make test       # HueKit and HueBar unit tests
 HUEBAR_LIVE=1 make test   # also run discovery/TLS tests against the bridge on your LAN
 swift run       # debug run without a bundle (no Dock icon either way)
 ```
 
-The app bundle is ad-hoc signed and not sandboxed.
+The app bundle is ad-hoc signed and not sandboxed. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+for architecture, testing and release notes.
 
 ## Layout
 
 ```
 HueBar/            SwiftUI app (App/, Store/, Views/, Assets.xcassets, Info.plist)
 HueKit/            UI-free Swift package: models, discovery, HTTPS client, colour maths, tests
+HueBarTests/       App-level tests (credentials file, store state); SwiftPM only
+docs/              Developer documentation
 Resources/         Rendered icon assets (AppIcon.icns, AppIcon-1024.png, Logo.png)
 scripts/           build-app.sh (bundle assembly), make-icons.swift (icon renderer)
 project.yml        xcodegen spec for HueBar.xcodeproj

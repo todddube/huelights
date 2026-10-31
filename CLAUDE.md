@@ -28,12 +28,18 @@ The previous Python/Streamlit implementation lives untouched in `backup/` (git-i
 
 ```bash
 make build / make app / make run / make install
-make test                 # unit tests
+make test                 # HueKit tests, then HueBarTests (swift test at the root)
 HUEBAR_LIVE=1 make test   # opt-in tests against the real bridge on the LAN
 make xcodeproj            # after adding/removing files outside Xcode
 make icons                # re-render artwork
 xcodebuild -project HueBar.xcodeproj -scheme HueBar build
 ```
+
+## Testing
+
+- App tests live in `HueBarTests/` and run through SwiftPM only (not in the Xcode scheme).
+- Tests must pass a temporary directory to `BridgeStore(credentialsDirectory:)` and
+  `PairedBridge.load/save/clear`; never touch `~/Library/Application Support/HueBar`.
 
 ## Conventions
 
