@@ -23,6 +23,7 @@
 		A1C307345C09E9443CEBDE1B /* AppBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A066FB0480ABF6D39CB52B8F /* AppBadge.swift */; };
 		A8FA86F19E496BA98A23C0F6 /* PairedBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B81CCE5E4342CCEC7504DF54 /* PairedBridge.swift */; };
 		AE1B1249B4CC240BCD661A2E /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C7E4280BF7A31A3951C7A9D /* main.swift */; };
+		C1D70D0CDBBEEA81B11CE788 /* IdleTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC84E803A1A68D011A314D73 /* IdleTimer.swift */; };
 		CFA1533CCA48FE0C11C9DD0E /* HueLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7414C0087FF17FD8BE9D9069 /* HueLogo.swift */; };
 		D31B8166E974C33C9B02322D /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = F68FACC8F644EBA251C14FDF /* AppInfo.swift */; };
 		DFDBD800D3652EA2878C75AD /* GroupsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81776756AC88B00A3AC5555E /* GroupsListView.swift */; };
@@ -44,6 +45,7 @@
 		B81CCE5E4342CCEC7504DF54 /* PairedBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairedBridge.swift; sourceTree = "<group>"; };
 		D6C546249790CBC5F87E120D /* BridgeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeStore.swift; sourceTree = "<group>"; };
 		DB3454E659076EF171A4A17E /* BridgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeView.swift; sourceTree = "<group>"; };
+		DC84E803A1A68D011A314D73 /* IdleTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleTimer.swift; sourceTree = "<group>"; };
 		E29AFBC392FEF0ADA426A504 /* Controls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controls.swift; sourceTree = "<group>"; };
 		E372AB6299D6332AB3014AFE /* HueKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = HueKit; path = HueKit; sourceTree = SOURCE_ROOT; };
 		E8E5CD43CB89269BA6D138AE /* ControlPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlPanelView.swift; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 			children = (
 				42F5981F8BC2245913C6DB11 /* AppDelegate.swift */,
 				F68FACC8F644EBA251C14FDF /* AppInfo.swift */,
+				DC84E803A1A68D011A314D73 /* IdleTimer.swift */,
 				9C7E4280BF7A31A3951C7A9D /* main.swift */,
 				0A4735559F7148C2F35212CD /* StatusItemController.swift */,
 			);
@@ -225,6 +228,7 @@
 				4B37D7C34C804138272243B3 /* Controls.swift in Sources */,
 				DFDBD800D3652EA2878C75AD /* GroupsListView.swift in Sources */,
 				CFA1533CCA48FE0C11C9DD0E /* HueLogo.swift in Sources */,
+				C1D70D0CDBBEEA81B11CE788 /* IdleTimer.swift in Sources */,
 				39FCC80315AE66F93AC3F83A /* LaunchAtLoginToggle.swift in Sources */,
 				3E88D9B539EA1B9D1F288482 /* LightsListView.swift in Sources */,
 				A8FA86F19E496BA98A23C0F6 /* PairedBridge.swift in Sources */,

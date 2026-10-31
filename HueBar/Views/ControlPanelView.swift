@@ -30,6 +30,7 @@ struct ControlPanelView: View {
 
     @Environment(BridgeStore.self) private var store
     @AppStorage("selectedTab") private var selectedTab: Tab = .lights
+    @AppStorage(PopoverTimeout.defaultsKey) private var timeoutSeconds = PopoverTimeout.defaultSeconds
     @State private var showingAbout = false
     @State private var contentHeight: CGFloat = 0
 
@@ -202,6 +203,11 @@ struct ControlPanelView: View {
             Menu {
                 Button("About HueBar") { showingAbout = true }
                 LaunchAtLoginToggle()
+                Picker("Close Popup After", selection: $timeoutSeconds) {
+                    ForEach(PopoverTimeout.choices, id: \.seconds) { choice in
+                        Text(choice.label).tag(choice.seconds)
+                    }
+                }
                 Divider()
                 Button("Forget Bridge…", role: .destructive) { store.isConfirmingForget = true }
                 Divider()

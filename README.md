@@ -21,6 +21,8 @@ updates, searching for new bulbs and removing devices.
   and install, search for new lights, paired device list with removal, forget bridge.
 - **Live updates** from the bridge's event stream, so changes made in the Hue app show up instantly.
 - Menu bar icon fills in when any light is on; one-click all-on/all-off; launch at login.
+- The popup closes itself after 30 seconds of inactivity (gear menu → Close Popup After:
+  15 s, 30 s, 1 min, 5 min or Never); clicks, typing, scrolling and drags keep it open.
 - Reconnects on its own after sleep or when the bridge changes IP address.
 - Accessibility: VoiceOver labels and values on every control, keyboard-reachable actions,
   Reduce Motion respected. Destructive actions (forget bridge, remove device, firmware

@@ -47,6 +47,10 @@ AppDelegate ─ StatusItemController (NSStatusItem + NSPopover)
   opens and shortly after wake.
 - **Popover sizing:** the hosting controller publishes `preferredContentSize`, so the popup
   grows and shrinks with its content (`MenuBarExtra` cannot shrink).
+- **Idle timeout:** `StatusItemController` arms an `IdleTimer` when the popup opens and re-arms on
+  local mouse/key/scroll events. Local monitors miss events inside slider drags and open menus,
+  so expiry is skipped (and re-armed) while a mouse button is down or a menu is tracking. The
+  choice is stored under `popoverTimeoutSeconds` (`0` = never).
 - New CLIP v2 fields: add them as optionals on the model **and** on `HueEventResource` so
   partial event updates apply.
 
