@@ -32,6 +32,8 @@ final class StatusItemController: NSObject {
         popover.behavior = .transient
         popover.animates = true
 
+        // Lets macOS remember where the user dragged the item in the menu bar.
+        statusItem.autosaveName = "HueBarStatusItem"
         if let button = statusItem.button {
             button.target = self
             button.action = #selector(togglePopover(_:))
@@ -39,6 +41,24 @@ final class StatusItemController: NSObject {
         }
         updateIcon()
         observeLightState()
+        observeWake()
+    }
+
+    // MARK: - Wake
+
+    /// Resyncs shortly after wake; the network and the bridge need a moment to come back.
+    private func observeWake() {
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let store = self?.store else { return }
+                Task {
+                    try? await Task.sleep(for: .seconds(3))
+                    await store.resync()
+                }
+            }
+        }
     }
 
     // MARK: - Icon
@@ -65,6 +85,7 @@ final class StatusItemController: NSObject {
             .withSymbolConfiguration(.init(pointSize: 15, weight: .medium))
         image?.isTemplate = true
         statusItem.button?.image = image
+        statusItem.button?.setAccessibilityLabel(store.anyLightOn ? "HueBar, lights on" : "HueBar, lights off")
     }
 
     // MARK: - Popover
@@ -74,6 +95,7 @@ final class StatusItemController: NSObject {
             popover.performClose(sender)
         } else if let button = statusItem.button {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            Task { await store.resync() }
             // Transient popovers only close on outside clicks while the app is active.
             NSApp.activate()
         }

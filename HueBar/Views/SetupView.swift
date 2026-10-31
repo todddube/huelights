@@ -50,6 +50,7 @@ struct SetupView: View {
                 }
                 .buttonStyle(.borderless)
                 .help("Search again")
+                .accessibilityLabel("Search again")
             }
         }
     }
@@ -77,7 +78,6 @@ struct SetupView: View {
                             Text("\(bridge.host) · \(bridge.id.uppercased())")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                                .textSelection(.enabled)
                         }
                         Spacer()
                         Image(systemName: "chevron.right").foregroundStyle(.tertiary)
@@ -118,8 +118,9 @@ struct SetupView: View {
         VStack(spacing: 14) {
             Image(systemName: "button.programmable")
                 .font(.system(size: 44))
-                .foregroundStyle(.blue)
+                .foregroundStyle(.tint)
                 .symbolEffect(.pulse, isActive: isWaiting)
+                .accessibilityHidden(true)
             Text("Press the link button on **\(bridge.name)**")
                 .multilineTextAlignment(.center)
             switch store.pairing {

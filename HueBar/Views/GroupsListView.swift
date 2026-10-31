@@ -35,6 +35,7 @@ struct GroupsListView: View {
             .font(.caption2.weight(.semibold))
             .foregroundStyle(.secondary)
             .padding(.leading, 4)
+            .accessibilityAddTraits(.isHeader)
     }
 
     private func groupRow(_ group: HueGroup) -> some View {
@@ -66,10 +67,12 @@ struct GroupRow: View {
                         .frame(width: 12)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(isExpanded ? "Collapse \(group.metadata.name)" : "Expand \(group.metadata.name)")
 
                 Image(systemName: group.type == .room ? "door.left.hand.closed" : "rectangle.3.group")
                     .foregroundStyle(isOn ? .orange : .secondary)
                     .frame(width: 16)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 1) {
                     EditableName(name: group.metadata.name) { store.rename(group, to: $0) }
@@ -78,7 +81,7 @@ struct GroupRow: View {
 
                 Spacer(minLength: 4)
 
-                Toggle("On", isOn: Binding(get: { isOn }, set: { store.setGroup(group, on: $0) }))
+                Toggle(group.metadata.name, isOn: Binding(get: { isOn }, set: { store.setGroup(group, on: $0) }))
                     .toggleStyle(.switch)
                     .controlSize(.mini)
                     .labelsHidden()
@@ -106,7 +109,7 @@ struct GroupRow: View {
                             if let brightness = light.dimming?.brightness, light.on.on {
                                 Text("\(Int(brightness))%").font(.caption2).monospacedDigit().foregroundStyle(.secondary)
                             }
-                            Toggle("On", isOn: Binding(get: { light.on.on }, set: { store.setLight(light, on: $0) }))
+                            Toggle(light.metadata.name, isOn: Binding(get: { light.on.on }, set: { store.setLight(light, on: $0) }))
                                 .toggleStyle(.switch)
                                 .controlSize(.mini)
                                 .labelsHidden()
@@ -153,6 +156,7 @@ struct SceneChips: View {
                             )
                     }
                     .buttonStyle(.plain)
+                    .accessibilityAddTraits(scene.isActive ? .isSelected : [])
                 }
             }
         }

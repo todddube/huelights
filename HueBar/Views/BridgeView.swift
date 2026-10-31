@@ -15,11 +15,17 @@ struct BridgeView: View {
     @State private var isBusy = false
     @State private var deviceToDelete: HueDevice?
     @State private var searchStartedAt: Date?
+    @State private var isConfirmingInstall = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             identitySection
             firmwareSection
+                .confirmationDialog("Install the firmware update?", isPresented: $isConfirmingInstall, titleVisibility: .visible) {
+                    Button("Install Update") { run { await store.installFirmwareUpdate() } }
+                } message: {
+                    Text("The bridge restarts during the update, so lights will not respond for a few minutes.")
+                }
             lightsSection
             devicesSection
             dangerSection
@@ -75,10 +81,9 @@ struct BridgeView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 if state.contains("readytoinstall") {
-                    Button("Install") {
-                        run { await store.installFirmwareUpdate() }
-                    }
-                    .controlSize(.small)
+                    Button("Install…") { isConfirmingInstall = true }
+                        .controlSize(.small)
+                        .disabled(isBusy)
                 }
                 Button("Check") {
                     run { await store.checkForFirmwareUpdate() }
@@ -104,8 +109,9 @@ struct BridgeView: View {
                 Spacer()
                 Button("Search") {
                     searchStartedAt = .now
-                    run {
+                    Task {
                         await store.searchForNewLights()
+                        // The bridge searches for about 40 seconds; wait it out before reloading.
                         try? await Task.sleep(for: .seconds(45))
                         await store.refresh()
                         searchStartedAt = nil
@@ -140,6 +146,7 @@ struct BridgeView: View {
                     .buttonStyle(.borderless)
                     .foregroundStyle(.secondary)
                     .help("Remove from bridge")
+                    .accessibilityLabel("Remove \(device.metadata.name) from bridge")
                 }
             }
         }
@@ -155,7 +162,7 @@ struct BridgeView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button("Forget", role: .destructive) { store.forgetBridge() }
+                Button("Forget…", role: .destructive) { store.isConfirmingForget = true }
                     .controlSize(.small)
             }
         }
@@ -169,6 +176,7 @@ struct BridgeView: View {
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .padding(.leading, 4)
+                .accessibilityAddTraits(.isHeader)
             VStack(alignment: .leading, spacing: 6) {
                 content()
             }

@@ -13,8 +13,9 @@ run: app          ## Build the app bundle and (re)launch it
 	pkill -x HueBar || true
 	open build/HueBar.app
 
-test:             ## HueKit unit tests (add HUEBAR_LIVE=1 to also hit the bridge on your LAN)
+test:             ## HueKit and HueBar unit tests (add HUEBAR_LIVE=1 to also hit the bridge on your LAN)
 	swift test --package-path HueKit
+	swift test
 
 xcodeproj:        ## Regenerate HueBar.xcodeproj from project.yml
 	xcodegen generate

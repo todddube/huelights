@@ -39,6 +39,8 @@ final class BridgeStore {
     private(set) var isDiscovering = false
     private(set) var pairing: PairingState = .idle
     var pairingTarget: DiscoveredBridge?
+    /// Set by any "forget" control; the panel shows one shared confirmation dialog for it.
+    var isConfirmingForget = false
 
     // MARK: Paired bridge
 
@@ -69,8 +71,12 @@ final class BridgeStore {
     @ObservationIgnored private var isConnecting = false
     @ObservationIgnored private let logger = Logger(subsystem: "com.todddube.HueBar", category: "store")
 
-    init() {
-        paired = PairedBridge.load()
+    /// Where credentials are read from and written to; tests pass a temporary folder.
+    @ObservationIgnored private let credentialsDirectory: URL
+
+    init(credentialsDirectory: URL = PairedBridge.directory) {
+        self.credentialsDirectory = credentialsDirectory
+        paired = PairedBridge.load(from: credentialsDirectory)
     }
 
     // MARK: - Derived
@@ -160,7 +166,8 @@ final class BridgeStore {
 
         pairingTask = Task { [weak self] in
             let client = HueClient(host: bridge.host, applicationKey: nil, trust: .pinned(bridgeID: bridge.id, fingerprint: nil))
-            let deviceType = "HueBar#\(Host.current().localizedName ?? "mac")".replacingOccurrences(of: " ", with: "-")
+            // The bridge rejects device types longer than 40 characters.
+            let deviceType = String("HueBar#\(Host.current().localizedName ?? "mac")".replacingOccurrences(of: " ", with: "-").prefix(40))
 
             for remaining in stride(from: 30, through: 1, by: -1) {
                 guard !Task.isCancelled, let self else { return }
@@ -202,9 +209,9 @@ final class BridgeStore {
             pairedAt: .now
         )
         do {
-            try record.save()
+            try record.save(to: credentialsDirectory)
         } catch {
-            pairing = .failed("Paired, but the key could not be saved to \(PairedBridge.fileURL.path): \(error.localizedDescription)")
+            pairing = .failed("Paired, but the key could not be saved to \(PairedBridge.fileURL(in: credentialsDirectory).path): \(error.localizedDescription)")
             return
         }
         paired = record
@@ -217,7 +224,11 @@ final class BridgeStore {
     func forgetBridge() {
         eventTask?.cancel()
         eventTask = nil
-        PairedBridge.clear()
+        for write in pendingWrites.values { write.task.cancel() }
+        pendingWrites = [:]
+        isConfirmingForget = false
+        lastError = nil
+        PairedBridge.clear(in: credentialsDirectory)
         paired = nil
         client = nil
         connection = .disconnected
@@ -234,30 +245,41 @@ final class BridgeStore {
 
     // MARK: - Connection
 
+    /// Builds a client for the saved bridge and loads its state, rediscovering the bridge by id
+    /// once if the saved address does not answer. Returns immediately if a connect is in progress.
     func connect() async {
-        guard let paired, !isConnecting else { return }
+        guard !isConnecting else { return }
         isConnecting = true
         defer { isConnecting = false }
         connection = .connecting
-        let client = HueClient(
-            host: paired.host,
-            applicationKey: paired.applicationKey,
-            trust: .pinned(bridgeID: paired.id, fingerprint: paired.certificateFingerprint)
-        )
-        self.client = client
+        var hasRelocated = false
 
-        do {
-            try await refresh(using: client)
-            connection = .connected
-            startEventStream()
-        } catch {
-            logger.error("Connect failed: \(error.localizedDescription, privacy: .public)")
-            if await relocateBridge() {
-                await connect()
-            } else {
+        // A loop rather than recursion: `isConnecting` is still set while this runs, so a nested
+        // `connect()` after relocating would return at the guard and leave the UI on "Connecting…".
+        while let paired {
+            let client = HueClient(
+                host: paired.host,
+                applicationKey: paired.applicationKey,
+                trust: .pinned(bridgeID: paired.id, fingerprint: paired.certificateFingerprint)
+            )
+            self.client = client
+
+            do {
+                try await refresh(using: client)
+                connection = .connected
+                startEventStream()
+                return
+            } catch {
+                logger.error("Connect failed: \(error.localizedDescription, privacy: .public)")
+                if !hasRelocated, await relocateBridge() {
+                    hasRelocated = true
+                    continue
+                }
                 connection = .failed(error.localizedDescription)
+                return
             }
         }
+        connection = .disconnected
     }
 
     /// If the bridge moved to a new IP (DHCP), find it again by id and update the record.
@@ -277,10 +299,26 @@ final class BridgeStore {
     private func persist(_ record: PairedBridge) {
         paired = record
         do {
-            try record.save()
+            try record.save(to: credentialsDirectory)
         } catch {
             logger.error("Could not save credentials: \(error.localizedDescription, privacy: .public)")
             lastError = "Could not save bridge settings: \(error.localizedDescription)"
+        }
+    }
+
+    /// Brings state up to date when the popover opens or the Mac wakes.
+    ///
+    /// A failed connection goes through ``connect()`` rather than ``refresh()`` so a bridge that
+    /// changed address while the Mac slept is found again.
+    func resync() async {
+        guard isPaired, !isConnecting else { return }
+        switch connection {
+        case .failed, .disconnected: await connect()
+        case .connecting, .connected:
+            await refresh()
+            // The state stays `.connected` through sleep, so a failed refresh is the only sign
+            // that the bridge moved; reconnect to rediscover it by id.
+            if lastError != nil { await connect() }
         }
     }
 
@@ -582,6 +620,11 @@ final class BridgeStore {
         } catch {
             lastError = error.localizedDescription
         }
+    }
+
+    /// Shows `message` in the error banner, for failures that do not come from a bridge call.
+    func report(_ message: String) {
+        lastError = message
     }
 
     func clearError() {

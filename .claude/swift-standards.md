@@ -3,7 +3,7 @@
 Project-specific rules for the `swift-code-reviewer` agent. These win over
 `~/.claude/swift-standards.md` on conflict.
 
-Last verified: 2026-10-30
+Last verified: 2026-10-31
 
 ## Platform baseline
 
@@ -13,10 +13,10 @@ Last verified: 2026-10-30
 | swift-tools-version | 6.0 (`Package.swift`, `HueKit/Package.swift`) |
 | Language mode | Swift 6, `SWIFT_STRICT_CONCURRENCY = complete` |
 | Deployment target | macOS 14.0 (SwiftPM `.macOS(.v14)`, project.yml, `LSMinimumSystemVersion`) |
-| Targets | `HueBar` (executable / app, AppKit `main.swift` + `NSStatusItem`/`NSPopover` hosting SwiftUI), `HueKit` (library), `HueKitTests` |
+| Targets | `HueBar` (executable / app, AppKit `main.swift` + `NSStatusItem`/`NSPopover` hosting SwiftUI), `HueKit` (library), `HueKitTests`, `HueBarTests` (SwiftPM only; `@testable import HueBar`, not in project.yml) |
 | Xcode project | Generated from `project.yml` with xcodegen (`make xcodeproj`); regenerate after adding/removing files |
 | Signing | Ad-hoc (`CODE_SIGN_IDENTITY = -`), hardened runtime on, App Sandbox off |
-| Tests | swift-testing; `HUEBAR_LIVE=1` enables live tests against a LAN bridge |
+| Tests | swift-testing; `make test` runs HueKit then HueBar tests; `HUEBAR_LIVE=1` enables live tests against a LAN bridge. HueBar tests must pass a temporary directory to `PairedBridge`/`BridgeStore(credentialsDirectory:)` |
 
 ## Header target labels
 
@@ -25,6 +25,7 @@ Last verified: 2026-10-30
 | `HueKit/Sources/HueKit/` | `HueKit · HueBar` |
 | `HueKit/Tests/HueKitTests/` | `HueKitTests · HueBar` |
 | `HueBar/` (App, Store, Views) | `HueBar · HueBar` |
+| `HueBarTests/` | `HueBarTests · HueBar` |
 | `scripts/*.swift` | `scripts · HueBar` (shebang above the header) |
 
 `Package.swift` files use a prose `//` block after `// swift-tools-version:`.
@@ -58,3 +59,4 @@ Last verified: 2026-10-30
 
 - 2026-10-30 — Created from the initial Swift 6 rewrite (HueKit + HueBar).
 - 2026-10-30 — Platform baseline: app entry moved from SwiftUI `MenuBarExtra` to AppKit `NSStatusItem` + `NSPopover`.
+- 2026-10-31 — Added the `HueBarTests` SwiftPM target to the baseline and header labels.

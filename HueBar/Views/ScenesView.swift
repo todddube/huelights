@@ -24,6 +24,7 @@ struct ScenesView: View {
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .padding(.leading, 4)
+                            .accessibilityAddTraits(.isHeader)
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 6)], spacing: 6) {
                             ForEach(store.scenes(for: group)) { scene in
                                 Button {
@@ -45,6 +46,7 @@ struct ScenesView: View {
                                     )
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityAddTraits(scene.isActive ? .isSelected : [])
                             }
                         }
                     }

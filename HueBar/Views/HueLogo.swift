@@ -12,6 +12,7 @@ struct HueLogo: View {
     var size: CGFloat = 40
     var animated = false
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var rotation: Angle = .zero
 
     var body: some View {
@@ -40,7 +41,7 @@ struct HueLogo: View {
         }
         .frame(width: size, height: size)
         .onAppear {
-            guard animated else { return }
+            guard animated, !reduceMotion else { return }
             withAnimation(.linear(duration: 6).repeatForever(autoreverses: false)) {
                 rotation = .degrees(360)
             }

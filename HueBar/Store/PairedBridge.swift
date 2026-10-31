@@ -41,12 +41,17 @@ struct PairedBridge: Codable, Hashable, Sendable {
         return base.appending(path: "HueBar", directoryHint: .isDirectory)
     }
 
-    static var fileURL: URL { directory.appending(path: "bridges.json") }
+    static var fileURL: URL { fileURL(in: directory) }
+
+    static func fileURL(in directory: URL) -> URL { directory.appending(path: "bridges.json") }
 
     /// The saved pairing, or `nil` when none exists or the file is unreadable.
-    static func load() -> PairedBridge? {
+    ///
+    /// Every entry point takes the directory so tests can use a temporary one and never touch
+    /// the user's real credentials.
+    static func load(from directory: URL = Self.directory) -> PairedBridge? {
         // No file simply means not paired yet, so a read failure is not worth reporting.
-        guard let data = try? Data(contentsOf: fileURL) else { return nil }
+        guard let data = try? Data(contentsOf: fileURL(in: directory)) else { return nil }
         do {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
@@ -58,23 +63,24 @@ struct PairedBridge: Codable, Hashable, Sendable {
     }
 
     /// Writes the record, creating the directory and restricting the file to the current user.
-    func save() throws {
+    func save(to directory: URL = Self.directory) throws {
         let fm = FileManager.default
-        try fm.createDirectory(at: Self.directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        let file = Self.fileURL(in: directory)
+        try fm.createDirectory(at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         // Tighten the directory even if it already existed (e.g. under HUEBAR_CONFIG_DIR).
-        try fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: Self.directory.path)
+        try fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(self)
         // createFile applies the mode at creation, so the key is never briefly world-readable.
-        guard fm.createFile(atPath: Self.fileURL.path, contents: data, attributes: [.posixPermissions: 0o600]) else {
-            throw CocoaError(.fileWriteUnknown, userInfo: [NSFilePathErrorKey: Self.fileURL.path])
+        guard fm.createFile(atPath: file.path, contents: data, attributes: [.posixPermissions: 0o600]) else {
+            throw CocoaError(.fileWriteUnknown, userInfo: [NSFilePathErrorKey: file.path])
         }
     }
 
-    static func clear() {
+    static func clear(in directory: URL = Self.directory) {
         // A missing file is the desired end state, so a failure to remove it is not an error worth surfacing.
-        try? FileManager.default.removeItem(at: fileURL)
+        try? FileManager.default.removeItem(at: fileURL(in: directory))
     }
 }

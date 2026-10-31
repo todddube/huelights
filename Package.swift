@@ -21,5 +21,10 @@ let package = Package(
             path: "HueBar",
             exclude: ["Info.plist", "Assets.xcassets"]
         ),
+        .testTarget(
+            name: "HueBarTests",
+            dependencies: ["HueBar"],
+            path: "HueBarTests"
+        ),
     ]
 )

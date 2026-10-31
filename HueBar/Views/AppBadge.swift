@@ -25,7 +25,7 @@ struct AppBadge: View {
 struct VersionPill: View {
     var body: some View {
         Text("v\(AppInfo.version)")
-            .font(.system(size: 9, weight: .semibold, design: .rounded))
+            .font(.caption2.weight(.semibold))
             .monospacedDigit()
             .foregroundStyle(.secondary)
             .padding(.horizontal, 6)

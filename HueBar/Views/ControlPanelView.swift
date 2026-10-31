@@ -40,10 +40,18 @@ struct ControlPanelView: View {
     }
 
     var body: some View {
-        if showingAbout {
-            AboutView { showingAbout = false }
-        } else {
-            panel
+        @Bindable var store = store
+        Group {
+            if showingAbout {
+                AboutView { showingAbout = false }
+            } else {
+                panel
+            }
+        }
+        .confirmationDialog("Forget this bridge?", isPresented: $store.isConfirmingForget, titleVisibility: .visible) {
+            Button("Forget Bridge", role: .destructive) { store.forgetBridge() }
+        } message: {
+            Text("This deletes the saved key from this Mac. You will need to press the bridge’s link button to pair again.")
         }
     }
 
@@ -105,6 +113,9 @@ struct ControlPanelView: View {
                 .fill(statusColor)
                 .frame(width: 9, height: 9)
                 .padding(.leading, 2)
+                .accessibilityElement()
+                .accessibilityLabel("Connection")
+                .accessibilityValue(connectionDescription)
             VStack(alignment: .leading, spacing: 1) {
                 Text(store.paired?.name ?? "Hue Bridge").font(.headline)
                 Text(statusText).font(.caption).foregroundStyle(.secondary)
@@ -121,6 +132,7 @@ struct ControlPanelView: View {
             }
             .buttonStyle(.borderless)
             .help(store.anyLightOn ? "Turn all lights off" : "Turn all lights on")
+            .accessibilityLabel(store.anyLightOn ? "Turn all lights off" : "Turn all lights on")
             .disabled(store.connection != .connected)
         }
     }
@@ -135,7 +147,7 @@ struct ControlPanelView: View {
                 Text(message)
             } actions: {
                 Button("Retry") { Task { await store.connect() } }
-                Button("Forget Bridge", role: .destructive) { store.forgetBridge() }
+                Button("Forget Bridge…", role: .destructive) { store.isConfirmingForget = true }
             }
         case .connecting where store.lights.isEmpty:
             ProgressView("Connecting…")
@@ -162,7 +174,10 @@ struct ControlPanelView: View {
                 Image(systemName: "xmark.circle.fill")
             }
             .buttonStyle(.borderless)
+            .help("Dismiss")
+            .accessibilityLabel("Dismiss error")
         }
+        .accessibilityElement(children: .contain)
         .padding(.horizontal, 14)
         .padding(.vertical, 6)
         .background(.yellow.opacity(0.1))
@@ -182,11 +197,13 @@ struct ControlPanelView: View {
             }
             .buttonStyle(.borderless)
             .help("Refresh")
+            .accessibilityLabel("Refresh")
+            .keyboardShortcut("r")
             Menu {
                 Button("About HueBar") { showingAbout = true }
                 LaunchAtLoginToggle()
                 Divider()
-                Button("Forget Bridge…", role: .destructive) { store.forgetBridge() }
+                Button("Forget Bridge…", role: .destructive) { store.isConfirmingForget = true }
                 Divider()
                 Button("Quit HueBar") { NSApplication.shared.terminate(nil) }
                     .keyboardShortcut("q")
@@ -196,6 +213,8 @@ struct ControlPanelView: View {
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
             .fixedSize()
+            .help("Settings")
+            .accessibilityLabel("Settings")
         }
     }
 
@@ -205,6 +224,15 @@ struct ControlPanelView: View {
         case .connecting: .yellow
         case .disconnected: .gray
         case .failed: .red
+        }
+    }
+
+    private var connectionDescription: String {
+        switch store.connection {
+        case .connected: "Connected"
+        case .connecting: "Connecting"
+        case .disconnected: "Not connected"
+        case .failed: "Offline"
         }
     }
 

@@ -46,6 +46,7 @@ struct LightRow: View {
                         .frame(width: 12)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(isExpanded ? "Collapse \(light.metadata.name)" : "Expand \(light.metadata.name)")
 
                 ColorSwatch(color: displayColor(for: light))
 
@@ -60,7 +61,7 @@ struct LightRow: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Toggle("On", isOn: Binding(
+                Toggle(light.metadata.name, isOn: Binding(
                     get: { light.on.on },
                     set: { store.setLight(light, on: $0) }
                 ))
@@ -108,6 +109,7 @@ struct LightRow: View {
                         set: { if let rgb = $0.rgbValue() { store.setLight(light, rgb: rgb) } }
                     ), supportsOpacity: false)
                     .font(.caption)
+                    .help("Choose any colour")
 
                     presetColors
                 }
@@ -139,6 +141,7 @@ struct LightRow: View {
                 }
                 .buttonStyle(.plain)
                 .help(preset.name)
+                .accessibilityLabel(preset.name)
             }
         }
     }
