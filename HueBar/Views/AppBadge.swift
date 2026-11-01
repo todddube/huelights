@@ -17,11 +17,12 @@ struct AppBadge: View {
             VersionPill()
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(AppInfo.name) version \(AppInfo.version)")
+        .accessibilityLabel("\(AppInfo.name) version \(AppInfo.version)\(AppInfo.buildDateText.map { ", built \($0)" } ?? "")")
     }
 }
 
-/// A tiny capsule showing the marketing version with a hue-gradient border.
+/// A tiny capsule showing the marketing version with a hue-gradient border; its tooltip adds
+/// the build date.
 struct VersionPill: View {
     var body: some View {
         Text("v\(AppInfo.version)")
@@ -41,6 +42,6 @@ struct VersionPill: View {
                 )
                 .opacity(0.7)
             )
-            .help("HueBar \(AppInfo.version)")
+            .help(AppInfo.buildDateText.map { "HueBar \(AppInfo.version), built \($0)" } ?? "HueBar \(AppInfo.version)")
     }
 }

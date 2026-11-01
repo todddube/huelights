@@ -23,6 +23,7 @@ updates, searching for new bulbs and removing devices.
 - Menu bar icon fills in when any light is on; one-click all-on/all-off; launch at login.
 - The popup closes itself after 30 seconds of inactivity (gear menu → Close Popup After:
   15 s, 30 s, 1 min, 5 min or Never); clicks, typing, scrolling and drags keep it open.
+- About panel with version, build number, build date, license and a link to the GitHub repository.
 - Reconnects on its own after sleep or when the bridge changes IP address.
 - Accessibility: VoiceOver labels and values on every control, keyboard-reachable actions,
   Reduce Motion respected. Destructive actions (forget bridge, remove device, firmware

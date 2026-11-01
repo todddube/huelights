@@ -19,12 +19,16 @@ rm -rf "$APP"
 mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
 cp "$BIN" "$CONTENTS/MacOS/HueBar"
 cp "$ROOT/HueBar/Info.plist" "$CONTENTS/Info.plist"
+# Stamp the build time (UTC) so the About panel shows when this bundle was made.
+plutil -replace HueBuildDate -string "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$CONTENTS/Info.plist"
 if [[ -f "$ROOT/Resources/AppIcon.icns" ]]; then
   cp "$ROOT/Resources/AppIcon.icns" "$CONTENTS/Resources/AppIcon.icns"
 fi
 echo -n "APPL????" > "$CONTENTS/PkgInfo"
 
 echo "▸ Signing (ad hoc)"
+# Finder / file-provider sync tags folders under ~/Documents; codesign rejects them as detritus.
+xattr -cr "$APP"
 codesign --force --sign - --identifier com.todddube.HueBar "$APP" >/dev/null
 
 if [[ "${1:-}" == "--install" ]]; then

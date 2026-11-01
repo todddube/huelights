@@ -2,7 +2,7 @@
 //  AboutView.swift
 //  HueBar · HueBar
 //
-//  Compact About panel: logo, version, author, license and a link to the source repository.
+//  Compact About panel: logo, version and build date, author, license and source links.
 //
 
 import SwiftUI
@@ -18,10 +18,16 @@ struct AboutView: View {
                 .padding(.top, 6)
             VStack(spacing: 2) {
                 Text(AppInfo.name).font(.title2.weight(.semibold))
-                Text("Version \(AppInfo.version)\(AppInfo.build.map { " (\($0))" } ?? "")")
+                Text("Version \(AppInfo.version)\(AppInfo.build.map { " (build \($0))" } ?? "")")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
+                if let built = AppInfo.buildDateText {
+                    Text("Built \(built)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
             }
             Text("Philips Hue lights and bridge control from your menu bar.")
                 .font(.callout)
@@ -31,6 +37,7 @@ struct AboutView: View {
             VStack(spacing: 6) {
                 row("Author", AppInfo.author)
                 row("License", AppInfo.license)
+                row("Source", AppInfo.repositoryDisplay)
             }
             HStack(spacing: 10) {
                 Button {
@@ -45,10 +52,6 @@ struct AboutView: View {
                 }
             }
             .controlSize(.small)
-            Text(AppInfo.repositoryURL.absoluteString)
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-                .textSelection(.enabled)
             Button("Back", action: onBack)
                 .buttonStyle(.borderless)
                 .padding(.top, 2)
@@ -61,7 +64,7 @@ struct AboutView: View {
         HStack {
             Text(label).foregroundStyle(.secondary)
             Spacer()
-            Text(value)
+            Text(value).textSelection(.enabled)
         }
         .font(.caption)
     }

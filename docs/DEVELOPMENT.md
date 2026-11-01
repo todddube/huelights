@@ -54,6 +54,12 @@ AppDelegate ─ StatusItemController (NSStatusItem + NSPopover)
 - New CLIP v2 fields: add them as optionals on the model **and** on `HueEventResource` so
   partial event updates apply.
 
+## Build date
+
+`scripts/build-app.sh` stamps `HueBuildDate` (ISO 8601, UTC) into the bundle's Info.plist; the
+About panel and the footer version tooltip show it. Xcode and `swift run` builds have no stamp
+and fall back to the executable's modification time, so treat those dates as approximate.
+
 ## Testing
 
 ```bash
